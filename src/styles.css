@@ -4,6 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Fundloom — Editorial Apple aesthetic
+ * Warm off-white canvas, deep ink type, single accent (forest), serif display + grotesk body.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap");
+
 /*
  * Design system definition.
  *
@@ -26,6 +31,10 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -46,6 +55,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+  --color-canvas: var(--canvas);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-line: var(--line);
+  --color-forest: var(--forest);
+  --color-forest-soft: var(--forest-soft);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -59,29 +75,42 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-soft: 0 1px 2px oklch(0.2 0.02 60 / 0.04), 0 8px 24px oklch(0.2 0.02 60 / 0.06);
+  --shadow-lift: 0 2px 6px oklch(0.2 0.02 60 / 0.05), 0 24px 60px -12px oklch(0.2 0.02 60 / 0.12);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 0.875rem;
+
+  /* Editorial palette */
+  --canvas: oklch(0.972 0.012 80);          /* warm off-white */
+  --paper:  oklch(0.985 0.008 80);          /* lighter card surface */
+  --ink:    oklch(0.205 0.018 60);          /* deep warm near-black */
+  --ink-soft: oklch(0.42 0.015 60);         /* secondary text */
+  --line:   oklch(0.88 0.012 75);           /* hairline borders */
+  --forest: oklch(0.42 0.07 145);           /* single accent */
+  --forest-soft: oklch(0.92 0.04 145);
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--canvas);
+  --secondary: oklch(0.94 0.012 75);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.94 0.012 75);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--forest-soft);
+  --accent-foreground: var(--forest);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.99 0.005 80);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +169,30 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-weight: 400;
+  }
+}
+
+@layer components {
+  .glass {
+    background: color-mix(in oklab, var(--paper) 70%, transparent);
+    backdrop-filter: saturate(140%) blur(18px);
+    -webkit-backdrop-filter: saturate(140%) blur(18px);
+    border: 1px solid color-mix(in oklab, var(--ink) 6%, transparent);
+  }
+  .hairline {
+    border: 1px solid var(--line);
+  }
+  .ink-grad {
+    background: linear-gradient(180deg, var(--ink) 0%, oklch(0.28 0.02 60) 100%);
   }
 }

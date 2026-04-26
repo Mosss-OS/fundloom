@@ -14,16 +14,204 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      campaigns: {
+        Row: {
+          amount_raised: number
+          contract_address: string | null
+          cover_image_url: string | null
+          created_at: string
+          deadline: string
+          description: string
+          goal_amount: number
+          id: string
+          payout_preference: Database["public"]["Enums"]["payout_pref"]
+          status: Database["public"]["Enums"]["campaign_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_raised?: number
+          contract_address?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          deadline: string
+          description: string
+          goal_amount: number
+          id?: string
+          payout_preference?: Database["public"]["Enums"]["payout_pref"]
+          status?: Database["public"]["Enums"]["campaign_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_raised?: number
+          contract_address?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          deadline?: string
+          description?: string
+          goal_amount?: number
+          id?: string
+          payout_preference?: Database["public"]["Enums"]["payout_pref"]
+          status?: Database["public"]["Enums"]["campaign_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donations: {
+        Row: {
+          amount: number
+          campaign_id: string
+          created_at: string
+          donor_user_id: string | null
+          donor_wallet: string
+          id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          tx_hash: string | null
+        }
+        Insert: {
+          amount: number
+          campaign_id: string
+          created_at?: string
+          donor_user_id?: string | null
+          donor_wallet: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          tx_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string
+          created_at?: string
+          donor_user_id?: string | null
+          donor_wallet?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_donor_user_id_fkey"
+            columns: ["donor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          campaign_id: string | null
+          created_at: string
+          id: string
+          status: Database["public"]["Enums"]["tx_status"]
+          tx_hash: string | null
+          type: Database["public"]["Enums"]["tx_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["tx_status"]
+          tx_hash?: string | null
+          type: Database["public"]["Enums"]["tx_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["tx_status"]
+          tx_hash?: string | null
+          type?: Database["public"]["Enums"]["tx_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          privy_id: string
+          updated_at: string
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id?: string
+          privy_id: string
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          privy_id?: string
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_campaign_raised: {
+        Args: { _amount: number; _campaign_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      campaign_status: "active" | "completed" | "cancelled"
+      payment_method: "crypto" | "fiat"
+      payout_pref: "crypto" | "fiat"
+      tx_status: "pending" | "confirmed" | "failed"
+      tx_type: "donation" | "withdrawal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +338,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      campaign_status: ["active", "completed", "cancelled"],
+      payment_method: ["crypto", "fiat"],
+      payout_pref: ["crypto", "fiat"],
+      tx_status: ["pending", "confirmed", "failed"],
+      tx_type: ["donation", "withdrawal"],
+    },
   },
 } as const

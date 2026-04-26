@@ -121,7 +121,7 @@ function CampaignDetail() {
                   No contributions yet — be the first.
                 </div>
               )}
-              {data.donations.map((d, i) => (
+              {(data.donations as any[]).map((d: any, i: number) => (
                 <motion.div
                   key={d.id}
                   initial={{ opacity: 0, y: 6 }}

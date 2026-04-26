@@ -28,8 +28,7 @@ export function PrivyAuthProvider({ children }: { children: ReactNode }) {
           showWalletLoginFirst: false,
         },
         embeddedWallets: {
-          createOnLogin: "users-without-wallets",
-          requireUserPasswordOnCreate: false,
+          ethereum: { createOnLogin: "users-without-wallets" },
         },
       }}
     >

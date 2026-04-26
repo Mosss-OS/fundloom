@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { fetchCampaigns } from "@/server/campaigns.functions";
-import { CampaignCard } from "@/components/CampaignCard";
+import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/explore")({
 });
 
 function Explore() {
-  const campaigns = Route.useLoaderData();
+  const campaigns = Route.useLoaderData() as unknown as CampaignCardData[];
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">

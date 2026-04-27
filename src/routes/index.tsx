@@ -19,12 +19,22 @@ import heroImg from "@/assets/hero-loom.jpg";
 import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
 import sample3 from "@/assets/sample-campaign-3.jpg";
+import { fetchActivePartners, type Partner } from "@/server/partners.functions";
 
 export const Route = createFileRoute("/")({
+  loader: () => fetchActivePartners(),
+  staleTime: 60_000,
+  errorComponent: ({ error }) => (
+    <main className="mx-auto max-w-3xl px-5 py-32">
+      <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
+      <p className="mt-3 text-ink-soft">{error.message}</p>
+    </main>
+  ),
   component: Index,
 });
 
 function Index() {
+  const partners = Route.useLoaderData();
   return (
     <main className="relative">
       {/* Hero */}
@@ -353,35 +363,7 @@ function Index() {
             Built on open rails
           </div>
         </div>
-        <div className="mt-8 flex gap-16 overflow-hidden">
-          <div className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16">
-            {["Base", "USDC", "Privy", "Coinbase", "Optimism", "Ethereum", "Stripe", "Plaid"].map(
-              (p) => (
-                <span
-                  key={p}
-                  className="font-display text-3xl tracking-tight text-ink-soft sm:text-4xl"
-                >
-                  {p}
-                </span>
-              ),
-            )}
-          </div>
-          <div
-            aria-hidden
-            className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16"
-          >
-            {["Base", "USDC", "Privy", "Coinbase", "Optimism", "Ethereum", "Stripe", "Plaid"].map(
-              (p) => (
-                <span
-                  key={`${p}-2`}
-                  className="font-display text-3xl tracking-tight text-ink-soft sm:text-4xl"
-                >
-                  {p}
-                </span>
-              ),
-            )}
-          </div>
-        </div>
+        <PartnersMarquee partners={partners} />
       </section>
 
       {/* FAQ */}
@@ -472,6 +454,61 @@ function FaqRow({ q, a, defaultOpen = false }: { q: string; a: string; defaultOp
       >
         <p className="pt-4 text-base leading-relaxed text-ink-soft sm:max-w-2xl">{a}</p>
       </motion.div>
+    </div>
+  );
+}
+
+function PartnersMarquee({ partners }: { partners: Partner[] }) {
+  if (partners.length === 0) {
+    return (
+      <div className="mx-auto mt-8 max-w-6xl px-5 text-sm text-ink-soft sm:px-8">
+        Partners coming soon.
+      </div>
+    );
+  }
+
+  // Duplicate the list so the marquee loop is seamless
+  const items = [...partners, ...partners];
+
+  return (
+    <div className="mt-8 flex gap-16 overflow-hidden">
+      {[0, 1].map((track) => (
+        <div
+          key={track}
+          aria-hidden={track === 1 ? true : undefined}
+          className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16"
+        >
+          {items.map((p, i) => {
+            const content = p.logo_url ? (
+              <img
+                src={p.logo_url}
+                alt={p.name}
+                className="h-8 w-auto object-contain opacity-70 transition hover:opacity-100 sm:h-10"
+                loading="lazy"
+              />
+            ) : (
+              <span className="font-display text-3xl tracking-tight text-ink-soft transition hover:text-ink sm:text-4xl">
+                {p.name}
+              </span>
+            );
+            return p.url ? (
+              <a
+                key={`${track}-${p.id}-${i}`}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0"
+              >
+                {content}
+              </a>
+            ) : (
+              <span key={`${track}-${p.id}-${i}`} className="shrink-0">
+                {content}
+              </span>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.increment_campaign_raised(uuid, numeric) FROM PUBLIC, anon, authenticated;

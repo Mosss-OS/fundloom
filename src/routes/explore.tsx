@@ -16,20 +16,41 @@ export const Route = createFileRoute("/explore")({
   component: Explore,
 });
 
+const CATEGORIES = [
+  "all",
+  "art",
+  "tech",
+  "community",
+  "education",
+  "health",
+  "environment",
+  "music",
+  "food",
+  "gaming",
+  "other",
+] as const;
+
 function Explore() {
-  const campaigns = Route.useLoaderData() as unknown as CampaignCardData[];
+  const campaigns = Route.useLoaderData() as unknown as (CampaignCardData & {
+    category?: string;
+  })[];
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"newest" | "most_funded" | "ending_soon">("newest");
+  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("all");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = q
-      ? campaigns.filter(
-          (c) =>
-            c.title.toLowerCase().includes(q) ||
-            c.description.toLowerCase().includes(q),
-        )
-      : [...campaigns];
+    let list = [...campaigns];
+    if (category !== "all") {
+      list = list.filter((c) => (c.category ?? "other") === category);
+    }
+    if (q) {
+      list = list.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          c.description.toLowerCase().includes(q),
+      );
+    }
     if (sort === "most_funded") {
       list.sort((a, b) => Number(b.amount_raised) - Number(a.amount_raised));
     } else if (sort === "ending_soon") {
@@ -39,7 +60,7 @@ function Explore() {
       );
     }
     return list;
-  }, [campaigns, query, sort]);
+  }, [campaigns, query, sort, category]);
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
@@ -59,7 +80,7 @@ function Explore() {
       </motion.header>
 
       {campaigns.length > 0 && (
-        <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-soft" />
             <input
@@ -88,6 +109,24 @@ function Explore() {
               {filtered.length} of {campaigns.length}
             </span>
           </div>
+        </div>
+      )}
+
+      {campaigns.length > 0 && (
+        <div className="mb-10 -mx-1 flex flex-wrap gap-2 overflow-x-auto px-1 pb-1">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`rounded-full px-4 py-1.5 text-xs capitalize transition hairline ${
+                category === c
+                  ? "bg-ink text-canvas"
+                  : "bg-paper text-ink-soft hover:text-ink"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       )}
 

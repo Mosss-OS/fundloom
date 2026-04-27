@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Upload, X } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
-import { createCampaign } from "@/server/campaigns.functions";
+import { createCampaign, uploadCampaignCover } from "@/server/campaigns.functions";
 import { formatUSD } from "@/lib/format";
 
 export const Route = createFileRoute("/create")({
@@ -12,13 +13,28 @@ export const Route = createFileRoute("/create")({
 
 const STEPS = ["Story", "Goal", "Cover", "Review"] as const;
 
+const CATEGORIES: { value: string; label: string }[] = [
+  { value: "art", label: "Art" },
+  { value: "tech", label: "Tech" },
+  { value: "community", label: "Community" },
+  { value: "education", label: "Education" },
+  { value: "health", label: "Health" },
+  { value: "environment", label: "Environment" },
+  { value: "music", label: "Music" },
+  { value: "food", label: "Food" },
+  { value: "gaming", label: "Gaming" },
+  { value: "other", label: "Other" },
+];
+
 function CreatePage() {
   const { user, loading } = useFundloomAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<string>("other");
   const [goal, setGoal] = useState("");
   const [deadline, setDeadline] = useState(() => {
     const d = new Date();
@@ -26,6 +42,7 @@ function CreatePage() {
     return d.toISOString().slice(0, 10);
   });
   const [cover, setCover] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [payout, setPayout] = useState<"crypto" | "fiat">("crypto");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +52,45 @@ function CreatePage() {
   }, [loading, user, navigate]);
 
   const canNext = () => {
-    if (step === 0) return title.trim().length >= 3 && description.trim().length >= 10;
+    if (step === 0)
+      return (
+        title.trim().length >= 3 &&
+        description.trim().length >= 10 &&
+        !!category
+      );
     if (step === 1) return Number(goal) > 0 && !!deadline;
-    if (step === 2) return true; // cover optional
+    if (step === 2) return !uploading;
     return true;
+  };
+
+  const onPickFile = () => fileInputRef.current?.click();
+
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 4 * 1024 * 1024) {
+      setError("Image must be 4 MB or less.");
+      return;
+    }
+    setError(null);
+    setUploading(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const res = await uploadCampaignCover({
+        data: {
+          userId: user.id,
+          fileName: file.name,
+          contentType: file.type,
+          fileBase64: base64,
+        },
+      });
+      setCover(res.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const submit = async () => {
@@ -55,6 +107,7 @@ function CreatePage() {
           deadline: new Date(deadline).toISOString(),
           coverImageUrl: cover.trim() || null,
           payoutPreference: payout,
+          category: category as any,
         },
       });
       navigate({ to: "/c/$id", params: { id: row.id } });
@@ -70,7 +123,6 @@ function CreatePage() {
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-12 sm:px-8 sm:py-16">
-      {/* Progress dots */}
       <div className="mb-12 flex items-center gap-3">
         {STEPS.map((label, i) => (
           <div key={label} className="flex items-center gap-3">
@@ -81,7 +133,9 @@ function CreatePage() {
             >
               {i + 1}
             </div>
-            <span className={`text-xs ${i === step ? "text-ink" : "text-ink-soft"}`}>{label}</span>
+            <span className={`text-xs ${i === step ? "text-ink" : "text-ink-soft"}`}>
+              {label}
+            </span>
             {i < STEPS.length - 1 && <span className="text-ink-soft">/</span>}
           </div>
         ))}
@@ -120,6 +174,24 @@ function CreatePage() {
                   className={inputCls + " resize-none"}
                 />
               </Field>
+              <Field label="Category">
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setCategory(c.value)}
+                      className={`rounded-full px-4 py-2 text-xs transition hairline ${
+                        category === c.value
+                          ? "bg-ink text-canvas"
+                          : "bg-paper text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
             </div>
           )}
 
@@ -127,11 +199,15 @@ function CreatePage() {
             <div className="space-y-6">
               <div>
                 <h1 className="font-display text-4xl text-ink">Set the goal.</h1>
-                <p className="mt-2 text-ink-soft">In USD. We'll handle the on-chain conversion.</p>
+                <p className="mt-2 text-ink-soft">
+                  In USD. We'll handle the on-chain conversion.
+                </p>
               </div>
               <Field label="Funding goal (USD)">
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-5 flex items-center text-ink-soft">$</span>
+                  <span className="absolute inset-y-0 left-5 flex items-center text-ink-soft">
+                    $
+                  </span>
                   <input
                     type="number"
                     min="1"
@@ -160,7 +236,9 @@ function CreatePage() {
                       type="button"
                       onClick={() => setPayout(p)}
                       className={`rounded-2xl px-4 py-3 text-sm capitalize transition hairline ${
-                        payout === p ? "bg-ink text-canvas" : "bg-paper text-ink hover:bg-ink/5"
+                        payout === p
+                          ? "bg-ink text-canvas"
+                          : "bg-paper text-ink hover:bg-ink/5"
                       }`}
                     >
                       {p === "crypto" ? "USDC (Base)" : "Fiat (off-ramp)"}
@@ -175,9 +253,49 @@ function CreatePage() {
             <div className="space-y-6">
               <div>
                 <h1 className="font-display text-4xl text-ink">Add a cover.</h1>
-                <p className="mt-2 text-ink-soft">Optional. A good image earns trust.</p>
+                <p className="mt-2 text-ink-soft">
+                  Optional. A good image earns trust.
+                </p>
               </div>
-              <Field label="Cover image URL">
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={onFileChange}
+              />
+
+              {cover ? (
+                <div className="relative overflow-hidden rounded-3xl hairline">
+                  <img
+                    src={cover}
+                    alt=""
+                    className="aspect-[5/3] w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setCover("")}
+                    className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-ink/80 text-canvas backdrop-blur transition hover:bg-ink"
+                    aria-label="Remove cover"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onPickFile}
+                  disabled={uploading}
+                  className="flex aspect-[5/3] w-full flex-col items-center justify-center gap-3 rounded-3xl bg-paper text-sm text-ink-soft transition hover:bg-ink/5 hairline disabled:opacity-50"
+                >
+                  <Upload className="size-6" />
+                  {uploading ? "Uploading…" : "Upload cover image"}
+                  <span className="text-xs">PNG, JPG, WEBP · up to 4 MB</span>
+                </button>
+              )}
+
+              <Field label="Or paste an image URL">
                 <input
                   value={cover}
                   onChange={(e) => setCover(e.target.value)}
@@ -185,11 +303,7 @@ function CreatePage() {
                   className={inputCls}
                 />
               </Field>
-              {cover && (
-                <div className="overflow-hidden rounded-3xl hairline">
-                  <img src={cover} alt="" className="aspect-[5/3] w-full object-cover" />
-                </div>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
           )}
 
@@ -201,9 +315,13 @@ function CreatePage() {
               </div>
               <div className="space-y-3 rounded-3xl bg-paper p-6 hairline">
                 <Row k="Title" v={title} />
+                <Row k="Category" v={category} />
                 <Row k="Goal" v={formatUSD(Number(goal))} />
                 <Row k="Deadline" v={new Date(deadline).toLocaleDateString()} />
-                <Row k="Payout" v={payout === "crypto" ? "USDC (Base)" : "Fiat off-ramp"} />
+                <Row
+                  k="Payout"
+                  v={payout === "crypto" ? "USDC (Base)" : "Fiat off-ramp"}
+                />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
@@ -263,4 +381,17 @@ function Row({ k, v }: { k: string; v: string }) {
       <span className="text-right text-sm text-ink">{v}</span>
     </div>
   );
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const idx = result.indexOf(",");
+      resolve(idx >= 0 ? result.slice(idx + 1) : result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }

@@ -420,7 +420,7 @@ export type Database = {
         | "food"
         | "gaming"
         | "other"
-      campaign_status: "active" | "completed" | "cancelled"
+      campaign_status: "active" | "completed" | "cancelled" | "failed"
       payment_method: "crypto" | "fiat"
       payout_pref: "crypto" | "fiat"
       tx_status: "pending" | "confirmed" | "failed"
@@ -565,7 +565,7 @@ export const Constants = {
         "gaming",
         "other",
       ],
-      campaign_status: ["active", "completed", "cancelled"],
+      campaign_status: ["active", "completed", "cancelled", "failed"],
       payment_method: ["crypto", "fiat"],
       payout_pref: ["crypto", "fiat"],
       tx_status: ["pending", "confirmed", "failed"],

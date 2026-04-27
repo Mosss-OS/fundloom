@@ -80,7 +80,9 @@ export const Route = createFileRoute("/c/")({
 type Tab = "story" | "updates" | "comments" | "backers";
 
 function CampaignDetail() {
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData() as NonNullable<
+    Awaited<ReturnType<typeof fetchCampaign>>
+  >;
   const router = useRouter();
   const { user } = useFundloomAuth();
   const [open, setOpen] = useState(false);

@@ -14,9 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaign_comments: {
+        Row: {
+          author_id: string
+          body: string
+          campaign_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_comments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_updates: {
+        Row: {
+          author_id: string
+          body: string
+          campaign_id: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_updates_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_updates_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           amount_raised: number
+          category: Database["public"]["Enums"]["campaign_category"]
           contract_address: string | null
           cover_image_url: string | null
           created_at: string
@@ -24,6 +109,7 @@ export type Database = {
           description: string
           goal_amount: number
           id: string
+          is_verified: boolean
           payout_preference: Database["public"]["Enums"]["payout_pref"]
           status: Database["public"]["Enums"]["campaign_status"]
           title: string
@@ -32,6 +118,7 @@ export type Database = {
         }
         Insert: {
           amount_raised?: number
+          category?: Database["public"]["Enums"]["campaign_category"]
           contract_address?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -39,6 +126,7 @@ export type Database = {
           description: string
           goal_amount: number
           id?: string
+          is_verified?: boolean
           payout_preference?: Database["public"]["Enums"]["payout_pref"]
           status?: Database["public"]["Enums"]["campaign_status"]
           title: string
@@ -47,6 +135,7 @@ export type Database = {
         }
         Update: {
           amount_raised?: number
+          category?: Database["public"]["Enums"]["campaign_category"]
           contract_address?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -54,6 +143,7 @@ export type Database = {
           description?: string
           goal_amount?: number
           id?: string
+          is_verified?: boolean
           payout_preference?: Database["public"]["Enums"]["payout_pref"]
           status?: Database["public"]["Enums"]["campaign_status"]
           title?: string
@@ -150,6 +240,54 @@ export type Database = {
           url?: string | null
         }
         Relationships: []
+      }
+      refunds: {
+        Row: {
+          amount: number
+          campaign_id: string
+          created_at: string
+          donor_user_id: string | null
+          donor_wallet: string
+          id: string
+          status: string
+          tx_hash: string | null
+        }
+        Insert: {
+          amount: number
+          campaign_id: string
+          created_at?: string
+          donor_user_id?: string | null
+          donor_wallet: string
+          id?: string
+          status?: string
+          tx_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string
+          created_at?: string
+          donor_user_id?: string | null
+          donor_wallet?: string
+          id?: string
+          status?: string
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_donor_user_id_fkey"
+            columns: ["donor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -267,9 +405,21 @@ export type Database = {
         Returns: undefined
       }
       is_admin_user: { Args: { _user_id: string }; Returns: boolean }
+      mark_expired_campaigns: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      campaign_category:
+        | "art"
+        | "tech"
+        | "community"
+        | "education"
+        | "health"
+        | "environment"
+        | "music"
+        | "food"
+        | "gaming"
+        | "other"
       campaign_status: "active" | "completed" | "cancelled"
       payment_method: "crypto" | "fiat"
       payout_pref: "crypto" | "fiat"
@@ -403,6 +553,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      campaign_category: [
+        "art",
+        "tech",
+        "community",
+        "education",
+        "health",
+        "environment",
+        "music",
+        "food",
+        "gaming",
+        "other",
+      ],
       campaign_status: ["active", "completed", "cancelled"],
       payment_method: ["crypto", "fiat"],
       payout_pref: ["crypto", "fiat"],

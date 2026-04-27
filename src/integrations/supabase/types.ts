@@ -266,6 +266,7 @@ export type Database = {
         Args: { _amount: number; _campaign_id: string }
         Returns: undefined
       }
+      is_admin_user: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Partner logos are publicly accessible" ON storage.objects;

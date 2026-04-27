@@ -16,6 +16,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CIdRouteImport } from './routes/c.$id'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
+import { Route as CRouteImport } from './routes/c.'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -52,6 +53,11 @@ const AdminPartnersRoute = AdminPartnersRouteImport.update({
   path: '/admin/partners',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CRoute = CRouteImport.update({
+  id: '/c/',
+  path: '/c/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/login': typeof LoginRoute
+  '/c/': typeof CRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/c/$id': typeof CIdRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/login': typeof LoginRoute
+  '/c': typeof CRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/c/$id': typeof CIdRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
   '/login': typeof LoginRoute
+  '/c/': typeof CRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/c/$id': typeof CIdRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/explore'
     | '/login'
+    | '/c/'
     | '/admin/partners'
     | '/c/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/explore'
     | '/login'
+    | '/c'
     | '/admin/partners'
     | '/c/$id'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/explore'
     | '/login'
+    | '/c/'
     | '/admin/partners'
     | '/c/$id'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
   LoginRoute: typeof LoginRoute
+  CRoute: typeof CRoute
   AdminPartnersRoute: typeof AdminPartnersRoute
   CIdRoute: typeof CIdRoute
 }
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPartnersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/c/': {
+      id: '/c/'
+      path: '/c'
+      fullPath: '/c/'
+      preLoaderRoute: typeof CRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
   LoginRoute: LoginRoute,
+  CRoute: CRoute,
   AdminPartnersRoute: AdminPartnersRoute,
   CIdRoute: CIdRoute,
 }

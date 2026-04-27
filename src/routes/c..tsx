@@ -31,7 +31,7 @@ import sample3 from "@/assets/sample-campaign-3.jpg";
 
 const fallbacks = [sample1, sample2, sample3];
 
-export const Route = createFileRoute("/c/$id")({
+export const Route = createFileRoute("/c/")({
   loader: async ({ params }) => {
     const result = await fetchCampaign({ data: { id: params.id } });
     if (!result) throw notFound();

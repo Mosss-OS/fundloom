@@ -19,12 +19,22 @@ import heroImg from "@/assets/hero-loom.jpg";
 import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
 import sample3 from "@/assets/sample-campaign-3.jpg";
+import { fetchActivePartners, type Partner } from "@/server/partners.functions";
 
 export const Route = createFileRoute("/")({
+  loader: () => fetchActivePartners(),
+  staleTime: 60_000,
+  errorComponent: ({ error }) => (
+    <main className="mx-auto max-w-3xl px-5 py-32">
+      <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
+      <p className="mt-3 text-ink-soft">{error.message}</p>
+    </main>
+  ),
   component: Index,
 });
 
 function Index() {
+  const partners = Route.useLoaderData();
   return (
     <main className="relative">
       {/* Hero */}

@@ -80,7 +80,7 @@ function Explore() {
       </motion.header>
 
       {campaigns.length > 0 && (
-        <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-soft" />
             <input
@@ -109,6 +109,24 @@ function Explore() {
               {filtered.length} of {campaigns.length}
             </span>
           </div>
+        </div>
+      )}
+
+      {campaigns.length > 0 && (
+        <div className="mb-10 -mx-1 flex flex-wrap gap-2 overflow-x-auto px-1 pb-1">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`rounded-full px-4 py-1.5 text-xs capitalize transition hairline ${
+                category === c
+                  ? "bg-ink text-canvas"
+                  : "bg-paper text-ink-soft hover:text-ink"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       )}
 

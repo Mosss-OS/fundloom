@@ -457,3 +457,58 @@ function FaqRow({ q, a, defaultOpen = false }: { q: string; a: string; defaultOp
     </div>
   );
 }
+
+function PartnersMarquee({ partners }: { partners: Partner[] }) {
+  if (partners.length === 0) {
+    return (
+      <div className="mx-auto mt-8 max-w-6xl px-5 text-sm text-ink-soft sm:px-8">
+        Partners coming soon.
+      </div>
+    );
+  }
+
+  // Duplicate the list so the marquee loop is seamless
+  const items = [...partners, ...partners];
+
+  return (
+    <div className="mt-8 flex gap-16 overflow-hidden">
+      {[0, 1].map((track) => (
+        <div
+          key={track}
+          aria-hidden={track === 1 ? true : undefined}
+          className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16"
+        >
+          {items.map((p, i) => {
+            const content = p.logo_url ? (
+              <img
+                src={p.logo_url}
+                alt={p.name}
+                className="h-8 w-auto object-contain opacity-70 transition hover:opacity-100 sm:h-10"
+                loading="lazy"
+              />
+            ) : (
+              <span className="font-display text-3xl tracking-tight text-ink-soft transition hover:text-ink sm:text-4xl">
+                {p.name}
+              </span>
+            );
+            return p.url ? (
+              <a
+                key={`${track}-${p.id}-${i}`}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0"
+              >
+                {content}
+              </a>
+            ) : (
+              <span key={`${track}-${p.id}-${i}`} className="shrink-0">
+                {content}
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}

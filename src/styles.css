@@ -196,3 +196,8 @@
     background: linear-gradient(180deg, var(--ink) 0%, oklch(0.28 0.02 60) 100%);
   }
 }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}

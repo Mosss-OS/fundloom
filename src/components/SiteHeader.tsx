@@ -1,12 +1,33 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { shortAddr } from "@/lib/format";
+import { isCurrentUserAdmin } from "@/server/partners.functions";
 
 export function SiteHeader() {
   const { user, logout } = useFundloomAuth();
   const { location } = useRouterState();
   const onLanding = location.pathname === "/";
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    isCurrentUserAdmin({ data: { actorUserId: user.id } })
+      .then((r) => {
+        if (!cancelled) setIsAdmin(!!r.isAdmin);
+      })
+      .catch(() => {
+        if (!cancelled) setIsAdmin(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   return (
     <motion.header
@@ -33,6 +54,15 @@ export function SiteHeader() {
           <Link to="/create" className="transition hover:text-ink" activeProps={{ className: "text-ink" }}>
             Create
           </Link>
+          {isAdmin && (
+            <Link
+              to="/admin/partners"
+              className="transition hover:text-ink"
+              activeProps={{ className: "text-ink" }}
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">

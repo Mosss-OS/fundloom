@@ -363,35 +363,7 @@ function Index() {
             Built on open rails
           </div>
         </div>
-        <div className="mt-8 flex gap-16 overflow-hidden">
-          <div className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16">
-            {["Base", "USDC", "Privy", "Coinbase", "Optimism", "Ethereum", "Stripe", "Plaid"].map(
-              (p) => (
-                <span
-                  key={p}
-                  className="font-display text-3xl tracking-tight text-ink-soft sm:text-4xl"
-                >
-                  {p}
-                </span>
-              ),
-            )}
-          </div>
-          <div
-            aria-hidden
-            className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16"
-          >
-            {["Base", "USDC", "Privy", "Coinbase", "Optimism", "Ethereum", "Stripe", "Plaid"].map(
-              (p) => (
-                <span
-                  key={`${p}-2`}
-                  className="font-display text-3xl tracking-tight text-ink-soft sm:text-4xl"
-                >
-                  {p}
-                </span>
-              ),
-            )}
-          </div>
-        </div>
+        <PartnersMarquee partners={partners} />
       </section>
 
       {/* FAQ */}

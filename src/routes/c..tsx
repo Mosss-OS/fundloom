@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, MessageCircle, Megaphone, Trash2 } from "lucide-react";
 import { fetchCampaign } from "@/server/campaigns.functions";
 import { withdrawFunds } from "@/server/donations.functions";

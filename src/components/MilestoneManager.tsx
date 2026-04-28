@@ -82,11 +82,16 @@ export function MilestoneManager({
     if (!user) return;
     setLoading(true);
     try {
-      const signer = await getSigner();
-      if (!signer) throw new Error("Wallet not available");
-
-      const contract = getContractInstance(signer);
-      await contract.releaseMilestone(campaignId, milestoneId);
+      // Use the parent's release function if provided, otherwise use internal
+      if (onReleaseMilestone) {
+        await onReleaseMilestone(milestoneId);
+      } else {
+        const signer = await getSigner();
+        if (!signer) throw new Error("Wallet not available");
+        
+        const contract = getContractInstance(signer);
+        await contract.releaseMilestone(campaignId, milestoneId);
+      }
       onChanged();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to release");

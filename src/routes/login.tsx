@@ -49,9 +49,7 @@ function Login() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="w-full"
       >
-        <h1 className="font-display text-4xl text-ink sm:text-5xl">
-          Welcome.
-        </h1>
+        <h1 className="font-display text-4xl text-ink sm:text-5xl">Welcome.</h1>
         <p className="mt-3 text-pretty text-ink-soft">
           Sign in with your email. A wallet is created for you — no setup required.
         </p>
@@ -71,9 +69,7 @@ function Login() {
             />
           </label>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <button
             type="submit"
@@ -88,7 +84,8 @@ function Login() {
             <p className="text-xs leading-relaxed text-ink-soft">
               Privy isn't configured yet — running in demo mode. Add{" "}
               <code className="rounded bg-paper px-1 py-0.5 hairline">VITE_PRIVY_APP_ID</code> to{" "}
-              <code className="rounded bg-paper px-1 py-0.5 hairline">.env</code> to enable real email auth.
+              <code className="rounded bg-paper px-1 py-0.5 hairline">.env</code> to enable real
+              email auth.
             </p>
           )}
         </form>

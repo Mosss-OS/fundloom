@@ -33,7 +33,8 @@ Fundloom bridges the gap between traditional crowdfunding and decentralized fina
 |-------|------------|
 | **Frontend** | Vite, React 19, Tailwind CSS 4, Framer Motion |
 | **Authentication** | Privy (email-only, embedded wallets) |
-| **Blockchain** | Base Sepolia, USDC, Ethers.js |
+| **Blockchain** | Base Sepolia, USDC, Ethers.js, Foundry |
+| **Smart Contracts** | Solidity (FundloomFactory.sol) |
 | **Backend** | Supabase (Postgres DB, Edge Functions) |
 | **Deployment** | Vercel |
 | **UI Components** | Radix UI, Lucide Icons, Recharts |
@@ -45,6 +46,7 @@ Fundloom bridges the gap between traditional crowdfunding and decentralized fina
 - [Bun](https://bun.sh) (recommended) or npm
 - Supabase account
 - Privy account
+- Foundry (for smart contract development)
 
 ### Installation
 
@@ -73,7 +75,37 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
 
 # Privy (get from dashboard.privy.io)
 VITE_PRIVY_APP_ID=your_privy_app_id
+
+# Smart Contract (after deployment)
+VITE_FUNDLOOM_FACTORY_ADDRESS=0x...
 ```
+
+## Smart Contract Deployment
+
+The FundloomFactory smart contract is ready for deployment to Base Sepolia.
+
+### Quick Start
+
+1. **Fund the deployment wallet** with Base Sepolia ETH:
+   - Wallet: `0x3E78Cfe4f3FEb28F8F1C56BABbF53a898b5F76DA`
+   - Faucets: https://www.coinbase.com/faucets/base-sepolia-faucet
+
+2. **Deploy the contract**:
+   ```bash
+   source .env
+   forge script script/DeployFundloomFactory.s.sol \
+     --rpc-url base-sepolia \
+     --private-key $DEPLOYER_PRIVATE_KEY \
+     --broadcast \
+     --verify
+   ```
+
+3. **Add contract address** to `.env`:
+   ```
+   VITE_FUNDLOOM_FACTORY_ADDRESS=0x...
+   ```
+
+See [DEPLOY.md](DEPLOY.md) for detailed instructions.
 
 ## Project Structure
 
@@ -82,14 +114,20 @@ fundloom/
 ├── src/
 │   ├── components/       # Reusable UI components
 │   ├── routes/           # Page routes (TanStack Router)
-│   ├── server/           # Supabase Edge Functions
+│   ├── server/           # Server functions
 │   ├── integrations/     # Third-party integrations
 │   │   └── supabase/     # Supabase client & types
-│   ├── lib/              # Utilities and helpers
-│   └── styles.css        # Global styles
+│   │   └── contract.ts   # Smart contract integration
+│   ├── auth/            # Authentication (Privy)
+│   ├── lib/             # Utilities and helpers
+│   └── styles.css       # Global styles
+├── contracts/            # Smart contracts (Foundry)
+│   ├── src/             # Solidity contracts
+│   ├── script/          # Deployment scripts
+│   └── out/             # Compiled contracts
 ├── supabase/
 │   └── migrations/       # Database migrations
-└── contracts/            # Smart contracts (future)
+└── public/              # Static assets
 ```
 
 ## Deployment
@@ -124,10 +162,10 @@ vercel --prod
 ## Roadmap
 
 - [ ] Mainnet deployment with USDC
-- [ ] Smart contract implementation for escrow
+- [x] Smart contract implementation for escrow
 - [ ] Mobile app (React Native)
-- [ ] Fiat on-ramp integration (Stripe)
-- [ ] Social features (comments, updates)
+- [ ] Fiat on-ramp integration (Stripe/Flutterwave)
+- [x] Social features (comments, updates)
 - [ ] DAO governance for disputes
 
 ## Contributing
@@ -158,3 +196,33 @@ MIT License — see [LICENSE](LICENSE) for details.
 ---
 
 Built with 🔗 by [Mosss-OS](https://github.com/Mosss-OS)
+
+## Foundry
+
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+
+Foundry consists of:
+- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+
+### Documentation
+
+https://book.getfoundry.sh/
+
+### Quick Start
+
+```bash
+# Build contracts
+forge build
+
+# Run tests
+forge test
+
+# Format code
+forge fmt
+
+# Start local node
+anvil
+```

@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { fundCampaign } from "@/server/donations.functions";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
+import { useEthersSigner } from "@/lib/ethers";
+import { getContractInstance } from "@/integrations/contract";
 import { formatUSD, shortAddr } from "@/lib/format";
 
 type Props = {
@@ -30,6 +32,8 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
     onClose();
   };
 
+  const { getSigner } = useEthersSigner();
+
   const submit = async () => {
     setError(null);
     const value = Number(amount);
@@ -43,15 +47,37 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
     }
     setPhase("confirming");
     try {
-      await fundCampaign({
-        data: {
-          campaignId,
-          donorWallet: user.wallet_address ?? "0x0",
-          donorUserId: user.id,
-          amount: value,
-          paymentMethod: method,
-        },
-      });
+      if (method === "crypto") {
+        // Use smart contract for USDC contribution
+        const signer = await getSigner();
+        if (!signer) throw new Error("Wallet not available");
+
+        const contract = getContractInstance(signer);
+        const txHash = await contract.contribute(Number(campaignId), value);
+
+        // Record the on-chain contribution in Supabase
+        await fundCampaign({
+          data: {
+            campaignId,
+            donorWallet: user.wallet_address ?? "0x0",
+            donorUserId: user.id,
+            amount: value,
+            paymentMethod: "crypto",
+            txHash,
+          },
+        });
+      } else {
+        // Fiat payment - still in demo mode
+        await fundCampaign({
+          data: {
+            campaignId,
+            donorWallet: user.wallet_address ?? "0x0",
+            donorUserId: user.id,
+            amount: value,
+            paymentMethod: "fiat",
+          },
+        });
+      }
       // Subtle delay for the success animation to feel earned
       await new Promise((r) => setTimeout(r, 600));
       setPhase("success");
@@ -106,7 +132,9 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                 </div>
 
                 <div className="mt-5">
-                  <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">Amount (USD)</div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">
+                    Amount (USD)
+                  </div>
                   <div className="mt-2 flex items-center gap-2">
                     {[25, 50, 100, 250].map((v) => (
                       <button
@@ -114,7 +142,9 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                         type="button"
                         onClick={() => setAmount(String(v))}
                         className={`rounded-full px-3 py-1.5 text-xs transition hairline ${
-                          Number(amount) === v ? "bg-ink text-canvas" : "bg-paper text-ink-soft hover:text-ink"
+                          Number(amount) === v
+                            ? "bg-ink text-canvas"
+                            : "bg-paper text-ink-soft hover:text-ink"
                         }`}
                       >
                         {formatUSD(v)}
@@ -122,7 +152,9 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                     ))}
                   </div>
                   <div className="relative mt-3">
-                    <span className="absolute inset-y-0 left-5 flex items-center text-ink-soft">$</span>
+                    <span className="absolute inset-y-0 left-5 flex items-center text-ink-soft">
+                      $
+                    </span>
                     <input
                       type="number"
                       min="1"
@@ -135,8 +167,8 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
 
                 {method === "fiat" && (
                   <p className="mt-4 rounded-2xl bg-paper p-3 text-xs leading-relaxed text-ink-soft hairline">
-                    Fiat payments via Flutterwave are coming soon. We'll record this contribution
-                    in demo mode for now.
+                    Fiat payments via Flutterwave are coming soon. We'll record this contribution in
+                    demo mode for now.
                   </p>
                 )}
 
@@ -150,7 +182,9 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                       onClick={submit}
                       className="inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-4 text-sm font-medium text-canvas transition hover:bg-ink/90 disabled:opacity-60"
                     >
-                      {phase === "confirming" ? "Confirming…" : `Contribute ${formatUSD(Number(amount) || 0)}`}
+                      {phase === "confirming"
+                        ? "Confirming…"
+                        : `Contribute ${formatUSD(Number(amount) || 0)}`}
                     </button>
                   ) : (
                     <button
@@ -171,7 +205,11 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                 </div>
               </>
             ) : (
-              <SuccessView amount={Number(amount)} onClose={handleClose} wallet={user?.wallet_address} />
+              <SuccessView
+                amount={Number(amount)}
+                onClose={handleClose}
+                wallet={user?.wallet_address}
+              />
             )}
           </motion.div>
         </motion.div>
@@ -180,7 +218,15 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
   );
 }
 
-function SuccessView({ amount, onClose, wallet }: { amount: number; onClose: () => void; wallet?: string | null }) {
+function SuccessView({
+  amount,
+  onClose,
+  wallet,
+}: {
+  amount: number;
+  onClose: () => void;
+  wallet?: string | null;
+}) {
   return (
     <div className="py-2 text-center">
       <motion.div
@@ -190,7 +236,13 @@ function SuccessView({ amount, onClose, wallet }: { amount: number; onClose: () 
         className="mx-auto flex size-16 items-center justify-center rounded-full bg-forest/15 text-forest"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M5 12.5l4.5 4.5L19 7.5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </motion.div>
       <h3 className="mt-5 font-display text-2xl text-ink">Thank you.</h3>

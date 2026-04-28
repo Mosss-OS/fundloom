@@ -62,12 +62,13 @@ function Index() {
               Live on Base Sepolia
             </span>
             <h1 className="mt-6 font-display text-5xl leading-[1.05] text-ink sm:text-7xl">
-              Crowdfunding,<br />
+              Crowdfunding,
+              <br />
               <em className="not-italic text-forest">woven together.</em>
             </h1>
             <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-ink-soft sm:text-lg">
-              Raise in USDC. Receive in fiat or crypto. Every contribution recorded on-chain —
-              every detail finished by hand.
+              Raise in USDC. Receive in fiat or crypto. Every contribution recorded on-chain — every
+              detail finished by hand.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Link
@@ -173,7 +174,8 @@ function Index() {
               Happening now
             </div>
             <h2 className="mt-4 font-display text-4xl text-ink sm:text-5xl">
-              Live campaigns,<br />
+              Live campaigns,
+              <br />
               <em className="not-italic text-forest">funding in real time.</em>
             </h2>
           </div>
@@ -236,10 +238,7 @@ function Index() {
                 <div className="p-6">
                   <h3 className="font-display text-xl text-ink">{c.title}</h3>
                   <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-line">
-                    <div
-                      className="h-full rounded-full bg-forest"
-                      style={{ width: `${pct}%` }}
-                    />
+                    <div className="h-full rounded-full bg-forest" style={{ width: `${pct}%` }} />
                   </div>
                   <div className="mt-3 flex items-center justify-between text-sm text-ink-soft">
                     <span>
@@ -406,7 +405,9 @@ function Index() {
           <div className="absolute -right-24 -top-24 size-96 rounded-full bg-forest/30 blur-3xl" />
           <div className="relative flex flex-col items-start gap-8 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-xl">
-              <div className="text-xs uppercase tracking-[0.2em] text-canvas/60">Ready when you are</div>
+              <div className="text-xs uppercase tracking-[0.2em] text-canvas/60">
+                Ready when you are
+              </div>
               <h2 className="mt-4 font-display text-4xl leading-[1.05] sm:text-6xl">
                 Start raising in <em className="not-italic text-forest-soft">five minutes.</em>
               </h2>

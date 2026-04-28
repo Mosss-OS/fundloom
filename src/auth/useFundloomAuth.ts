@@ -49,9 +49,7 @@ export function useFundloomAuth() {
     const email = privy.user.email?.address ?? "";
     const privyId = privy.user.id;
     const wallet =
-      wallets[0]?.address ??
-      privy.user.wallet?.address ??
-      mockEmbeddedWallet(privyId || email);
+      wallets[0]?.address ?? privy.user.wallet?.address ?? mockEmbeddedWallet(privyId || email);
 
     if (synced.current === privyId) return;
     synced.current = privyId;
@@ -100,7 +98,7 @@ export function useFundloomAuth() {
       privyAvailable: privy.available,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, loading, privy.available]
+    [user, loading, privy.available],
   );
 }
 

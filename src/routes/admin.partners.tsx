@@ -109,9 +109,7 @@ function AdminPartnersPage() {
 
   const onToggle = async (p: AdminPartner) => {
     if (!user) return;
-    setPartners((prev) =>
-      prev.map((r) => (r.id === p.id ? { ...r, is_active: !p.is_active } : r)),
-    );
+    setPartners((prev) => prev.map((r) => (r.id === p.id ? { ...r, is_active: !p.is_active } : r)));
     try {
       await togglePartnerActive({
         data: { actorUserId: user.id, id: p.id, isActive: !p.is_active },
@@ -146,9 +144,7 @@ function AdminPartnersPage() {
     return (
       <main className="mx-auto max-w-4xl px-5 py-24 sm:px-8">
         <h1 className="font-display text-3xl text-ink">Not authorized</h1>
-        <p className="mt-3 text-ink-soft">
-          You need an admin role to manage partners.
-        </p>
+        <p className="mt-3 text-ink-soft">You need an admin role to manage partners.</p>
       </main>
     );
   }
@@ -162,9 +158,7 @@ function AdminPartnersPage() {
         className="mb-10 flex flex-wrap items-end justify-between gap-4"
       >
         <div>
-          <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">
-            Admin
-          </span>
+          <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">Admin</span>
           <h1 className="mt-2 font-display text-4xl text-ink">Partners</h1>
           <p className="mt-2 text-sm text-ink-soft">
             Manage the sponsor & partner logos shown on the landing marquee.
@@ -238,18 +232,11 @@ function AdminPartnersPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="truncate font-medium text-ink">{p.name}</p>
-                  <p className="text-xs text-ink-soft md:hidden">
-                    {p.url ?? "—"}
-                  </p>
+                  <p className="text-xs text-ink-soft md:hidden">{p.url ?? "—"}</p>
                 </div>
                 <div className="hidden truncate text-sm text-ink-soft md:block">
                   {p.url ? (
-                    <a
-                      href={p.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:text-ink"
-                    >
+                    <a href={p.url} target="_blank" rel="noreferrer" className="hover:text-ink">
                       {p.url}
                     </a>
                   ) : (
@@ -257,13 +244,8 @@ function AdminPartnersPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch
-                    checked={p.is_active}
-                    onCheckedChange={() => onToggle(p)}
-                  />
-                  <span className="text-xs text-ink-soft">
-                    {p.is_active ? "Live" : "Hidden"}
-                  </span>
+                  <Switch checked={p.is_active} onCheckedChange={() => onToggle(p)} />
+                  <span className="text-xs text-ink-soft">{p.is_active ? "Live" : "Hidden"}</span>
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   <button
@@ -302,16 +284,13 @@ function AdminPartnersPage() {
         nextOrder={partners.length}
       />
 
-      <AlertDialog
-        open={!!confirmDelete}
-        onOpenChange={(o) => !o && setConfirmDelete(null)}
-      >
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this partner?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmDelete?.name} will be removed from the landing marquee.
-              This action cannot be undone.
+              {confirmDelete?.name} will be removed from the landing marquee. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

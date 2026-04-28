@@ -43,15 +43,27 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm text-ink-soft md:flex">
-          <Link to="/explore" className="transition hover:text-ink" activeProps={{ className: "text-ink" }}>
+          <Link
+            to="/explore"
+            className="transition hover:text-ink"
+            activeProps={{ className: "text-ink" }}
+          >
             Explore
           </Link>
           {user && (
-            <Link to="/dashboard" className="transition hover:text-ink" activeProps={{ className: "text-ink" }}>
+            <Link
+              to="/dashboard"
+              className="transition hover:text-ink"
+              activeProps={{ className: "text-ink" }}
+            >
               Dashboard
             </Link>
           )}
-          <Link to="/create" className="transition hover:text-ink" activeProps={{ className: "text-ink" }}>
+          <Link
+            to="/create"
+            className="transition hover:text-ink"
+            activeProps={{ className: "text-ink" }}
+          >
             Create
           </Link>
           {isAdmin && (
@@ -97,7 +109,14 @@ export function SiteHeader() {
 function LoomMark() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="10.5" stroke="currentColor" className="text-ink" strokeWidth="0.6" />
+      <circle
+        cx="11"
+        cy="11"
+        r="10.5"
+        stroke="currentColor"
+        className="text-ink"
+        strokeWidth="0.6"
+      />
       <path
         d="M3 11h16M11 3v16M5 5l12 12M17 5L5 17"
         stroke="currentColor"

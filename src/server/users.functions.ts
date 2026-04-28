@@ -49,19 +49,14 @@ export const syncUser = createServerFn({ method: "POST" })
   });
 
 export const getUserStats = createServerFn({ method: "POST" })
-  .inputValidator((data: { userId: string }) =>
-    z.object({ userId: z.string().uuid() }).parse(data)
-  )
+  .inputValidator((data: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
     const { data: campaigns } = await supabaseAdmin
       .from("campaigns")
       .select("id,amount_raised,status")
       .eq("user_id", data.userId);
 
-    const totalRaised = (campaigns ?? []).reduce(
-      (s, c) => s + Number(c.amount_raised || 0),
-      0
-    );
+    const totalRaised = (campaigns ?? []).reduce((s, c) => s + Number(c.amount_raised || 0), 0);
     const activeCount = (campaigns ?? []).filter((c) => c.status === "active").length;
 
     return {

@@ -56,7 +56,7 @@ export const fetchCampaigns = createServerFn({ method: "POST" })
         limit: z.number().int().positive().max(100).optional(),
         category: z.enum(CATEGORIES).optional(),
       })
-      .parse(d ?? {})
+      .parse(d ?? {}),
   )
   .handler(async ({ data }) => {
     // Background sweep so failed-campaign UI is fresh.
@@ -85,7 +85,7 @@ export const fetchCampaign = createServerFn({ method: "POST" })
         id: z.string().uuid(),
         viewerUserId: z.string().uuid().nullable().optional(),
       })
-      .parse(d)
+      .parse(d),
   )
   .handler(async ({ data }) => {
     try {
@@ -127,8 +127,7 @@ export const fetchCampaign = createServerFn({ method: "POST" })
     let viewerDonatedTotal = 0;
     if (data.viewerUserId) {
       const past = new Date(campaign.deadline).getTime() < Date.now();
-      const underGoal =
-        Number(campaign.amount_raised) < Number(campaign.goal_amount);
+      const underGoal = Number(campaign.amount_raised) < Number(campaign.goal_amount);
       const isFailed = campaign.status === "failed" || (past && underGoal);
       if (isFailed) {
         const { data: myDons } = await supabaseAdmin
@@ -136,19 +135,13 @@ export const fetchCampaign = createServerFn({ method: "POST" })
           .select("amount")
           .eq("campaign_id", data.id)
           .eq("donor_user_id", data.viewerUserId);
-        viewerDonatedTotal = (myDons ?? []).reduce(
-          (s, d) => s + Number(d.amount || 0),
-          0
-        );
+        viewerDonatedTotal = (myDons ?? []).reduce((s, d) => s + Number(d.amount || 0), 0);
         const { data: myRefs } = await supabaseAdmin
           .from("refunds")
           .select("amount")
           .eq("campaign_id", data.id)
           .eq("donor_user_id", data.viewerUserId);
-        refundedAmount = (myRefs ?? []).reduce(
-          (s, r) => s + Number(r.amount || 0),
-          0
-        );
+        refundedAmount = (myRefs ?? []).reduce((s, r) => s + Number(r.amount || 0), 0);
         refundEligible = viewerDonatedTotal - refundedAmount > 0;
       }
     }
@@ -187,11 +180,12 @@ export const uploadCampaignCover = createServerFn({ method: "POST" })
     if (bytes.length > 4 * 1024 * 1024) throw new Error("Max 4 MB.");
 
     const ext =
-      data.fileName.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ||
-      "jpg";
-    const path = `${data.userId}/${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 10)}.${ext}`;
+      data.fileName
+        .split(".")
+        .pop()
+        ?.toLowerCase()
+        .replace(/[^a-z0-9]/g, "") || "jpg";
+    const path = `${data.userId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
 
     const { error: upErr } = await supabaseAdmin.storage
       .from("campaign-covers")
@@ -201,9 +195,7 @@ export const uploadCampaignCover = createServerFn({ method: "POST" })
       });
     if (upErr) throw new Error(upErr.message);
 
-    const { data: pub } = supabaseAdmin.storage
-      .from("campaign-covers")
-      .getPublicUrl(path);
+    const { data: pub } = supabaseAdmin.storage.from("campaign-covers").getPublicUrl(path);
     return { url: pub.publicUrl, path };
   });
 

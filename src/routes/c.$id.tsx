@@ -14,7 +14,12 @@ import {
 import { PaymentModal } from "@/components/PaymentModal";
 import { ShareRow } from "@/components/ShareRow";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { MilestoneManager } from "@/components/MilestoneManager";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
+import { useEthersSigner } from "@/lib/ethers";
+import { getContractInstance } from "@/integrations/contract";
+import { AiFraudDetection } from "@/components/AiFraudDetection";
+import { SmartDonorMatching } from "@/components/SmartDonorMatching";
 import {
   formatUSD,
   shortAddr,
@@ -45,9 +50,7 @@ export const Route = createFileRoute("/c/$id")({
         { name: "description", content: c?.description?.slice(0, 160) ?? "" },
         { property: "og:title", content: c?.title ?? "Fundloom" },
         { property: "og:description", content: c?.description?.slice(0, 160) ?? "" },
-        ...(c?.cover_image_url
-          ? [{ property: "og:image", content: c.cover_image_url }]
-          : []),
+        ...(c?.cover_image_url ? [{ property: "og:image", content: c.cover_image_url }] : []),
       ],
     };
   },
@@ -77,14 +80,13 @@ export const Route = createFileRoute("/c/$id")({
   component: CampaignDetail,
 });
 
-type Tab = "story" | "updates" | "comments" | "backers";
+type Tab = "story" | "milestones" | "updates" | "comments" | "backers";
 
 function CampaignDetail() {
-  const data = Route.useLoaderData() as NonNullable<
-    Awaited<ReturnType<typeof fetchCampaign>>
-  >;
+  const data = Route.useLoaderData() as NonNullable<Awaited<ReturnType<typeof fetchCampaign>>>;
   const router = useRouter();
   const { user } = useFundloomAuth();
+  const { getSigner } = useEthersSigner();
   const [open, setOpen] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const [refunding, setRefunding] = useState(false);
@@ -114,25 +116,69 @@ function CampaignDetail() {
   const isFailed = c.status === "failed";
   const isFunded = Number(c.amount_raised) >= Number(c.goal_amount);
 
-  const shareUrl =
-    typeof window !== "undefined" ? window.location.href : `/c/${c.id}`;
+  const shareUrl = typeof window !== "undefined" ? window.location.href : `/c/${c.id}`;
 
   const handleWithdraw = async () => {
     if (!user) return;
     setWithdrawing(true);
     try {
-      await withdrawFunds({
-        data: {
-          userId: user.id,
-          campaignId: c.id,
-          amount: Number(c.amount_raised),
-        },
-      });
+      // Get the on-chain campaign ID from the campaign data
+      const onChainCampaignId = (c as any).on_chain_campaign_id;
+
+      if (onChainCampaignId !== undefined && onChainCampaignId !== null) {
+        // Use smart contract withdrawal (legacy - for campaigns without milestones)
+        const signer = await getSigner();
+        if (!signer) throw new Error("Wallet not available");
+
+        const contract = getContractInstance(signer);
+        const txHash = await contract.withdraw(onChainCampaignId);
+
+        // Record the withdrawal in Supabase
+        await withdrawFunds({
+          data: {
+            userId: user.id,
+            campaignId: c.id,
+            amount: Number(c.amount_raised),
+          },
+        });
+      } else {
+        // Fallback to server function if no on-chain campaign
+        await withdrawFunds({
+          data: {
+            userId: user.id,
+            campaignId: c.id,
+            amount: Number(c.amount_raised),
+          },
+        });
+      }
+
       router.invalidate();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Withdrawal failed");
     } finally {
       setWithdrawing(false);
+    }
+  };
+
+  // Handle milestone-based withdrawal
+  const handleReleaseMilestone = async (milestoneId: number) => {
+    if (!user) return;
+    try {
+      const onChainCampaignId = (c as any).on_chain_campaign_id;
+      if (onChainCampaignId === undefined || onChainCampaignId === null) {
+        throw new Error("No on-chain campaign found");
+      }
+
+      const signer = await getSigner();
+      if (!signer) throw new Error("Wallet not available");
+
+      const contract = getContractInstance(signer);
+      const txHash = await contract.releaseMilestone(onChainCampaignId, milestoneId);
+
+      alert(`Milestone ${milestoneId} released! Tx: ${txHash.slice(0, 10)}...`);
+      router.invalidate();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to release milestone");
     }
   };
 
@@ -167,9 +213,7 @@ function CampaignDetail() {
         {/* Left: story / tabs */}
         <div>
           <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-ink-soft">
-            <span>
-              {c.payout_preference === "crypto" ? "USDC payout · Base" : "Fiat payout"}
-            </span>
+            <span>{c.payout_preference === "crypto" ? "USDC payout · Base" : "Fiat payout"}</span>
             <span aria-hidden>·</span>
             <span className="capitalize">{c.category ?? "other"}</span>
             {c.is_verified && <VerifiedBadge className="ml-1" />}
@@ -192,6 +236,7 @@ function CampaignDetail() {
             {(
               [
                 ["story", "Story"],
+                ["milestones", `Milestones${c.milestones_count ? ` · ${c.milestones_count}` : ""}`],
                 ["updates", `Updates${data.updates.length ? ` · ${data.updates.length}` : ""}`],
                 ["comments", `Comments${data.comments.length ? ` · ${data.comments.length}` : ""}`],
                 ["backers", `Backers · ${data.donations.length}`],
@@ -217,9 +262,33 @@ function CampaignDetail() {
 
           <div className="mt-8">
             {tab === "story" && (
-              <p className="whitespace-pre-line text-pretty leading-relaxed text-ink-soft">
-                {c.description}
-              </p>
+              <div className="space-y-6">
+                <p className="whitespace-pre-line text-pretty leading-relaxed text-ink-soft">
+                  {c.description}
+                </p>
+                <AiFraudDetection
+                  campaign={c}
+                  creatorHistory={{
+                    campaignsCreated: 1, // TODO: fetch from API
+                    successfulCampaigns: 0,
+                    totalRaised: 0,
+                  }}
+                />
+                <SmartDonorMatching
+                  campaignTitle={c.title}
+                  campaignDescription={c.description}
+                  campaignCategory={c.category || "other"}
+                />
+              </div>
+            )}
+
+            {tab === "milestones" && (
+              <MilestoneManager
+                campaignId={Number(c.on_chain_campaign_id) || 0}
+                isOwner={isOwner}
+                milestonesCount={c.milestones_count || 0}
+                onChanged={() => router.invalidate()}
+              />
             )}
 
             {tab === "updates" && (
@@ -242,9 +311,7 @@ function CampaignDetail() {
               />
             )}
 
-            {tab === "backers" && (
-              <BackersSection donations={data.donations as any[]} />
-            )}
+            {tab === "backers" && <BackersSection donations={data.donations as any[]} />}
           </div>
         </div>
 
@@ -257,9 +324,7 @@ function CampaignDetail() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="rounded-3xl bg-paper p-7 hairline"
             >
-              <div className="font-display text-4xl text-ink">
-                {formatUSD(c.amount_raised)}
-              </div>
+              <div className="font-display text-4xl text-ink">{formatUSD(c.amount_raised)}</div>
               <div className="mt-1 text-sm text-ink-soft">
                 raised of {formatUSD(c.goal_amount)} goal
               </div>
@@ -269,20 +334,14 @@ function CampaignDetail() {
                   initial={{ width: 0 }}
                   animate={{ width: `${pct}%` }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className={`h-full rounded-full ${
-                    isFailed ? "bg-destructive" : "bg-forest"
-                  }`}
+                  className={`h-full rounded-full ${isFailed ? "bg-destructive" : "bg-forest"}`}
                 />
               </div>
 
               <div className="mt-5 grid grid-cols-2 gap-3 border-t border-line pt-5 text-sm">
                 <div>
-                  <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">
-                    Backers
-                  </div>
-                  <div className="mt-1 font-display text-xl text-ink">
-                    {data.donations.length}
-                  </div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">Backers</div>
+                  <div className="mt-1 font-display text-xl text-ink">{data.donations.length}</div>
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">
@@ -295,19 +354,33 @@ function CampaignDetail() {
               </div>
 
               {isOwner ? (
-                <button
-                  onClick={handleWithdraw}
-                  disabled={
-                    withdrawing || Number(c.amount_raised) <= 0 || isFailed
-                  }
-                  className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-forest px-6 py-3.5 text-sm font-medium text-canvas transition hover:bg-forest/90 disabled:opacity-50"
-                >
-                  {withdrawing
-                    ? "Withdrawing…"
-                    : isFailed
-                      ? "Refunding backers"
-                      : `Withdraw ${formatUSD(c.amount_raised)}`}
-                </button>
+                <>
+                  {/* Legacy withdrawal - only show if no milestones */}
+                  {(!c.milestones_count || c.milestones_count === 0) && (
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={withdrawing || Number(c.amount_raised) <= 0 || isFailed}
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-forest px-6 py-3.5 text-sm font-medium text-canvas transition hover:bg-forest/90 disabled:opacity-50"
+                    >
+                      {withdrawing
+                        ? "Withdrawing…"
+                        : isFailed
+                          ? "Refunding backers"
+                          : `Withdraw ${formatUSD(c.amount_raised)}`}
+                    </button>
+                  )}
+
+                  {/* Info message when milestones exist */}
+                  {c.milestones_count > 0 && (
+                    <div className="mt-6 rounded-2xl bg-blue-50 p-4 text-sm text-blue-700">
+                      <p className="font-medium">Milestone-based withdrawals active</p>
+                      <p className="mt-1 text-xs">
+                        Use the Milestones tab to approve and release funds for completed
+                        milestones.
+                      </p>
+                    </div>
+                  )}
+                </>
               ) : viewer.refundEligible ? (
                 <button
                   onClick={handleRefund}
@@ -316,9 +389,7 @@ function CampaignDetail() {
                 >
                   {refunding
                     ? "Processing…"
-                    : `Claim refund · ${formatUSD(
-                        viewer.donatedTotal - viewer.refundedAmount,
-                      )}`}
+                    : `Claim refund · ${formatUSD(viewer.donatedTotal - viewer.refundedAmount)}`}
                 </button>
               ) : (
                 <button
@@ -326,11 +397,7 @@ function CampaignDetail() {
                   disabled={isFailed || isFunded}
                   className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3.5 text-sm font-medium text-canvas transition hover:bg-ink/90 disabled:opacity-40"
                 >
-                  {isFailed
-                    ? "Campaign ended"
-                    : isFunded
-                      ? "Fully funded"
-                      : "Contribute"}
+                  {isFailed ? "Campaign ended" : isFunded ? "Fully funded" : "Contribute"}
                 </button>
               )}
             </motion.div>
@@ -359,9 +426,7 @@ function CreatorCard({ campaign }: { campaign: any }) {
   return (
     <div className="rounded-3xl bg-paper p-6 text-sm hairline">
       <div className="flex items-center justify-between">
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">
-          Created by
-        </div>
+        <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">Created by</div>
         {campaign.is_verified && <VerifiedBadge />}
       </div>
       <div className="mt-2 flex items-center gap-2 font-mono text-sm text-ink">
@@ -392,9 +457,7 @@ function BackersSection({ donations }: { donations: any[] }) {
   }
   return (
     <div className="space-y-2">
-      <p className="text-sm text-ink-soft">
-        Every transaction is on the public ledger.
-      </p>
+      <p className="text-sm text-ink-soft">Every transaction is on the public ledger.</p>
       <div className="mt-4 space-y-2">
         {donations.map((d, i) => {
           const tx = baseScanTxUrl(d.tx_hash);
@@ -421,9 +484,7 @@ function BackersSection({ donations }: { donations: any[] }) {
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-display text-lg text-ink">
-                  {formatUSD(d.amount)}
-                </div>
+                <div className="font-display text-lg text-ink">{formatUSD(d.amount)}</div>
                 {tx ? (
                   <a
                     href={tx}
@@ -565,9 +626,7 @@ function UpdatesSection({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h4 className="font-display text-lg text-ink">{u.title}</h4>
-                  <div className="mt-0.5 text-xs text-ink-soft">
-                    {formatTimeAgo(u.created_at)}
-                  </div>
+                  <div className="mt-0.5 text-xs text-ink-soft">{formatTimeAgo(u.created_at)}</div>
                 </div>
                 {isOwner && userId === u.author_id && (
                   <button
@@ -673,12 +732,9 @@ function CommentsSection({
       ) : (
         <div className="space-y-2">
           {comments.map((cm) => {
-            const canDelete =
-              userId && (userId === cm.author_id || userId === ownerId);
+            const canDelete = userId && (userId === cm.author_id || userId === ownerId);
             const name =
-              cm.users?.display_name ||
-              shortAddr(cm.users?.wallet_address) ||
-              "Anonymous";
+              cm.users?.display_name || shortAddr(cm.users?.wallet_address) || "Anonymous";
             return (
               <motion.div
                 key={cm.id}
@@ -690,18 +746,14 @@ function CommentsSection({
                   <div className="min-w-0">
                     <div className="text-xs">
                       <span className="font-medium text-ink">{name}</span>{" "}
-                      <span className="text-ink-soft">
-                        · {formatTimeAgo(cm.created_at)}
-                      </span>
+                      <span className="text-ink-soft">· {formatTimeAgo(cm.created_at)}</span>
                       {cm.author_id === ownerId && (
                         <span className="ml-2 rounded-full bg-forest/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-forest">
                           Creator
                         </span>
                       )}
                     </div>
-                    <p className="mt-1.5 whitespace-pre-line text-sm text-ink-soft">
-                      {cm.body}
-                    </p>
+                    <p className="mt-1.5 whitespace-pre-line text-sm text-ink-soft">{cm.body}</p>
                   </div>
                   {canDelete && (
                     <button

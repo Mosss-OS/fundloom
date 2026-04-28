@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+// Note: The withdrawal function now expects the frontend to call the smart contract directly
+// This function is kept for recording withdrawal transactions in Supabase
+
 const FundSchema = z.object({
   campaignId: z.string().uuid(),
   donorWallet: z.string().min(10).max(80),

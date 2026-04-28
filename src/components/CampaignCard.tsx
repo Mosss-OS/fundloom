@@ -50,9 +50,7 @@ export function CampaignCard({
         </div>
         <div className="p-5 sm:p-6">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="line-clamp-1 font-display text-xl text-ink">
-              {campaign.title}
-            </h3>
+            <h3 className="line-clamp-1 font-display text-xl text-ink">{campaign.title}</h3>
             <span className="shrink-0 text-xs text-ink-soft">{daysLeft(campaign.deadline)}</span>
           </div>
           <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink-soft">
@@ -71,8 +69,7 @@ export function CampaignCard({
             </div>
             <div className="mt-2 flex items-baseline justify-between text-sm">
               <span className="text-ink">
-                {formatUSD(campaign.amount_raised)}{" "}
-                <span className="text-ink-soft">raised</span>
+                {formatUSD(campaign.amount_raised)} <span className="text-ink-soft">raised</span>
               </span>
               <span className="text-ink-soft">of {formatUSD(campaign.goal_amount)}</span>
             </div>

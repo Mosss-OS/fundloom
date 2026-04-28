@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Sparkles } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
+import { useEthersSigner } from "@/lib/ethers";
+import { getContractInstance } from "@/integrations/contract";
 import { createCampaign, uploadCampaignCover } from "@/server/campaigns.functions";
+import { AiCampaignOptimizer } from "@/components/AiCampaignOptimizer";
 import { formatUSD } from "@/lib/format";
 
 export const Route = createFileRoute("/create")({
@@ -11,7 +14,7 @@ export const Route = createFileRoute("/create")({
   component: CreatePage,
 });
 
-const STEPS = ["Story", "Goal", "Cover", "Review"] as const;
+const STEPS = ["Story", "Goal", "Cover", "Milestones", "Review"] as const;
 
 const CATEGORIES: { value: string; label: string }[] = [
   { value: "art", label: "Art" },
@@ -28,6 +31,7 @@ const CATEGORIES: { value: string; label: string }[] = [
 
 function CreatePage() {
   const { user, loading } = useFundloomAuth();
+  const { getSigner } = useEthersSigner();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,6 +50,9 @@ function CreatePage() {
   const [payout, setPayout] = useState<"crypto" | "fiat">("crypto");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [milestones, setMilestones] = useState<Array<{ description: string; amount: string }>>([]);
+  const [milestoneDesc, setMilestoneDesc] = useState("");
+  const [milestoneAmount, setMilestoneAmount] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -53,11 +60,7 @@ function CreatePage() {
 
   const canNext = () => {
     if (step === 0)
-      return (
-        title.trim().length >= 3 &&
-        description.trim().length >= 10 &&
-        !!category
-      );
+      return title.trim().length >= 3 && description.trim().length >= 10 && !!category;
     if (step === 1) return Number(goal) > 0 && !!deadline;
     if (step === 2) return !uploading;
     return true;
@@ -98,6 +101,24 @@ function CreatePage() {
     setSubmitting(true);
     setError(null);
     try {
+      // Create on-chain campaign first
+      const signer = await getSigner();
+      let onChainCampaignId: number | undefined;
+
+      if (signer) {
+        const contract = getContractInstance(signer);
+        const deadlineUnix = Math.floor(new Date(deadline).getTime() / 1000);
+        onChainCampaignId = await contract.createCampaign(Number(goal), deadlineUnix);
+
+        // Add milestones to the on-chain campaign
+        if (milestones.length > 0) {
+          for (const m of milestones) {
+            await contract.addMilestone(onChainCampaignId, m.description, Number(m.amount));
+          }
+        }
+      }
+
+      // Create Supabase record with on-chain ID
       const row = await createCampaign({
         data: {
           userId: user.id,
@@ -110,6 +131,7 @@ function CreatePage() {
           category: category as any,
         },
       });
+
       navigate({ to: "/c/$id", params: { id: row.id } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create campaign.");
@@ -133,9 +155,7 @@ function CreatePage() {
             >
               {i + 1}
             </div>
-            <span className={`text-xs ${i === step ? "text-ink" : "text-ink-soft"}`}>
-              {label}
-            </span>
+            <span className={`text-xs ${i === step ? "text-ink" : "text-ink-soft"}`}>{label}</span>
             {i < STEPS.length - 1 && <span className="text-ink-soft">/</span>}
           </div>
         ))}
@@ -199,9 +219,7 @@ function CreatePage() {
             <div className="space-y-6">
               <div>
                 <h1 className="font-display text-4xl text-ink">Set the goal.</h1>
-                <p className="mt-2 text-ink-soft">
-                  In USD. We'll handle the on-chain conversion.
-                </p>
+                <p className="mt-2 text-ink-soft">In USD. We'll handle the on-chain conversion.</p>
               </div>
               <Field label="Funding goal (USD)">
                 <div className="relative">
@@ -236,9 +254,7 @@ function CreatePage() {
                       type="button"
                       onClick={() => setPayout(p)}
                       className={`rounded-2xl px-4 py-3 text-sm capitalize transition hairline ${
-                        payout === p
-                          ? "bg-ink text-canvas"
-                          : "bg-paper text-ink hover:bg-ink/5"
+                        payout === p ? "bg-ink text-canvas" : "bg-paper text-ink hover:bg-ink/5"
                       }`}
                     >
                       {p === "crypto" ? "USDC (Base)" : "Fiat (off-ramp)"}
@@ -253,9 +269,7 @@ function CreatePage() {
             <div className="space-y-6">
               <div>
                 <h1 className="font-display text-4xl text-ink">Add a cover.</h1>
-                <p className="mt-2 text-ink-soft">
-                  Optional. A good image earns trust.
-                </p>
+                <p className="mt-2 text-ink-soft">Optional. A good image earns trust.</p>
               </div>
 
               <input
@@ -268,11 +282,7 @@ function CreatePage() {
 
               {cover ? (
                 <div className="relative overflow-hidden rounded-3xl hairline">
-                  <img
-                    src={cover}
-                    alt=""
-                    className="aspect-[5/3] w-full object-cover"
-                  />
+                  <img src={cover} alt="" className="aspect-[5/3] w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => setCover("")}
@@ -318,10 +328,7 @@ function CreatePage() {
                 <Row k="Category" v={category} />
                 <Row k="Goal" v={formatUSD(Number(goal))} />
                 <Row k="Deadline" v={new Date(deadline).toLocaleDateString()} />
-                <Row
-                  k="Payout"
-                  v={payout === "crypto" ? "USDC (Base)" : "Fiat off-ramp"}
-                />
+                <Row k="Payout" v={payout === "crypto" ? "USDC (Base)" : "Fiat off-ramp"} />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>

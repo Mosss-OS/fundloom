@@ -46,18 +46,13 @@ function Explore() {
     }
     if (q) {
       list = list.filter(
-        (c) =>
-          c.title.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q),
+        (c) => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q),
       );
     }
     if (sort === "most_funded") {
       list.sort((a, b) => Number(b.amount_raised) - Number(a.amount_raised));
     } else if (sort === "ending_soon") {
-      list.sort(
-        (a, b) =>
-          new Date(a.deadline).getTime() - new Date(b.deadline).getTime(),
-      );
+      list.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     }
     return list;
   }, [campaigns, query, sort, category]);
@@ -71,9 +66,7 @@ function Explore() {
         className="mb-12 max-w-2xl"
       >
         <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">Open campaigns</span>
-        <h1 className="mt-3 font-display text-4xl text-ink sm:text-5xl">
-          Worth backing.
-        </h1>
+        <h1 className="mt-3 font-display text-4xl text-ink sm:text-5xl">Worth backing.</h1>
         <p className="mt-3 text-ink-soft">
           Each campaign is on-chain. Each contribution leaves a public mark.
         </p>
@@ -119,9 +112,7 @@ function Explore() {
               key={c}
               onClick={() => setCategory(c)}
               className={`rounded-full px-4 py-1.5 text-xs capitalize transition hairline ${
-                category === c
-                  ? "bg-ink text-canvas"
-                  : "bg-paper text-ink-soft hover:text-ink"
+                category === c ? "bg-ink text-canvas" : "bg-paper text-ink-soft hover:text-ink"
               }`}
             >
               {c}
@@ -135,9 +126,7 @@ function Explore() {
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl bg-paper p-12 text-center hairline">
           <h3 className="font-display text-2xl text-ink">No matches</h3>
-          <p className="mt-2 text-sm text-ink-soft">
-            Try a different search term.
-          </p>
+          <p className="mt-2 text-sm text-ink-soft">Try a different search term.</p>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -20,8 +20,7 @@ export const postCampaignUpdate = createServerFn({ method: "POST" })
       .eq("id", data.campaignId)
       .single();
     if (cErr) throw new Error(cErr.message);
-    if (campaign.user_id !== data.authorId)
-      throw new Error("Only the creator can post updates.");
+    if (campaign.user_id !== data.authorId) throw new Error("Only the creator can post updates.");
 
     const { data: row, error } = await supabaseAdmin
       .from("campaign_updates")
@@ -52,10 +51,7 @@ export const deleteCampaignUpdate = createServerFn({ method: "POST" })
       .single();
     if (selErr) throw new Error(selErr.message);
     if (row.author_id !== data.actorUserId) throw new Error("Not your update.");
-    const { error } = await supabaseAdmin
-      .from("campaign_updates")
-      .delete()
-      .eq("id", data.updateId);
+    const { error } = await supabaseAdmin.from("campaign_updates").delete().eq("id", data.updateId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -18,7 +18,11 @@ function Dashboard() {
   const { user, loading } = useFundloomAuth();
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<CampaignCardData[]>([]);
-  const [stats, setStats] = useState<{ totalRaised: number; activeCount: number; campaignCount: number } | null>(null);
+  const [stats, setStats] = useState<{
+    totalRaised: number;
+    activeCount: number;
+    campaignCount: number;
+  } | null>(null);
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
@@ -56,18 +60,20 @@ function Dashboard() {
         className="mb-10"
       >
         <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">Welcome back</span>
-        <h1 className="mt-2 font-display text-4xl text-ink sm:text-5xl">{user.email.split("@")[0]}.</h1>
+        <h1 className="mt-2 font-display text-4xl text-ink sm:text-5xl">
+          {user.email.split("@")[0]}.
+        </h1>
       </motion.header>
 
       {/* Balance + stat cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <BigStat
-          label="Total raised"
-          value={formatUSD(stats?.totalRaised ?? 0)}
-          accent
-        />
+        <BigStat label="Total raised" value={formatUSD(stats?.totalRaised ?? 0)} accent />
         <BigStat label="Active campaigns" value={String(stats?.activeCount ?? 0)} />
-        <BigStat label="Wallet balance (USDC)" value="$0.00" hint={shortAddr(user.wallet_address)} />
+        <BigStat
+          label="Wallet balance (USDC)"
+          value="$0.00"
+          hint={shortAddr(user.wallet_address)}
+        />
       </div>
 
       {/* Quick actions */}
@@ -102,7 +108,9 @@ function Dashboard() {
         ) : campaigns.length === 0 ? (
           <div className="rounded-3xl bg-paper p-12 text-center hairline">
             <h3 className="font-display text-2xl text-ink">Nothing yet</h3>
-            <p className="mt-2 text-sm text-ink-soft">Launch your first campaign in under a minute.</p>
+            <p className="mt-2 text-sm text-ink-soft">
+              Launch your first campaign in under a minute.
+            </p>
             <Link
               to="/create"
               className="mt-6 inline-flex rounded-full bg-ink px-5 py-2.5 text-sm text-canvas hover:bg-ink/90"
@@ -142,7 +150,9 @@ function BigStat({
         accent ? "ink-grad text-canvas" : "bg-paper text-ink"
       }`}
     >
-      <div className={`text-xs uppercase tracking-[0.18em] ${accent ? "text-canvas/70" : "text-ink-soft"}`}>
+      <div
+        className={`text-xs uppercase tracking-[0.18em] ${accent ? "text-canvas/70" : "text-ink-soft"}`}
+      >
         {label}
       </div>
       <div className="mt-3 font-display text-4xl tracking-tight">{value}</div>

@@ -20,6 +20,7 @@ import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
 import sample3 from "@/assets/sample-campaign-3.jpg";
 import { fetchActivePartners, type Partner } from "@/server/partners.functions";
+import { SmileMoon, Sunburst, Blob, Dot, Underline, Floater } from "@/components/DevfolioDecor";
 
 export const Route = createFileRoute("/")({
   loader: () => fetchActivePartners(),
@@ -50,6 +51,23 @@ function Index() {
           <div className="absolute inset-0 bg-gradient-to-b from-canvas/30 via-canvas/60 to-canvas" />
         </div>
 
+        {/* Devfolio-style floating decorations */}
+        <Floater className="left-[6%] top-24 hidden sm:block" delay={0.1}>
+          <SmileMoon className="h-12 w-20 rotate-[-8deg]" color="#F4C26B" />
+        </Floater>
+        <Floater className="right-[8%] top-32 hidden sm:block" delay={0.4}>
+          <SmileMoon className="h-10 w-16 rotate-[14deg]" color="#F0E6C8" />
+        </Floater>
+        <Floater className="right-[16%] top-72 hidden md:block" delay={0.6}>
+          <Sunburst className="h-20 w-20 opacity-80" color="#CDEBD6" />
+        </Floater>
+        <Floater className="left-[42%] top-16 hidden md:block" delay={0.3}>
+          <Dot className="h-3 w-3" color="#5b8cff" />
+        </Floater>
+        <Floater className="left-[18%] bottom-24 hidden sm:block" delay={0.5}>
+          <Blob className="h-10 w-10 rotate-12" color="#9CA8FF" />
+        </Floater>
+
         <div className="mx-auto max-w-6xl px-5 pb-28 pt-20 sm:px-8 sm:pt-28">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -64,7 +82,10 @@ function Index() {
             <h1 className="mt-6 font-display text-5xl leading-[1.05] text-ink sm:text-7xl">
               Crowdfunding,
               <br />
-              <em className="not-italic text-forest">woven together.</em>
+              <span className="relative inline-block not-italic text-ink">
+                woven together.
+                <Underline className="absolute -bottom-2 left-0 h-3 w-full text-forest" />
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-ink-soft sm:text-lg">
               Raise in USDC. Receive in fiat or crypto. Every contribution recorded on-chain — every

@@ -477,10 +477,10 @@ function FaqRow({ q, a, defaultOpen = false }: { q: string; a: string; defaultOp
     <div className="py-6">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-6 text-left"
+        className="group flex w-full items-center justify-between gap-6 text-left"
       >
         <span className="font-display text-xl text-ink sm:text-2xl">{q}</span>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full hairline text-ink transition group-hover:bg-ink group-hover:text-canvas">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full hairline text-ink transition-colors group-hover:bg-ink group-hover:text-canvas">
           {open ? <Minus className="size-4" /> : <Plus className="size-4" />}
         </span>
       </button>

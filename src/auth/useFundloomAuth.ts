@@ -115,6 +115,11 @@ function useSafePrivy() {
   return { available: true as const, ...p };
 }
 function useSafeWallets() {
+  // Skip on server-side to avoid "useWallets called outside PrivyProvider" error
+  if (typeof window === "undefined") {
+    return [] as { address: string }[];
+  }
+  
   const appId = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
   const available = !!appId && appId !== "REPLACE_WITH_YOUR_PRIVY_APP_ID";
   if (!available) return [] as { address: string }[];

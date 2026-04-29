@@ -173,15 +173,10 @@ function CampaignDetail() {
       if (!signer) throw new Error("Wallet not available");
 
       const contract = getContractInstance(signer);
-       const txHash = await contract.releaseMilestone(onChainCampaignId, milestoneId);
-      
-        alert(`Milestone ${milestoneId} released! Tx: ${txHash.slice(0, 10)}...`);
-        router.invalidate();
-      } catch (e) {
-        alert(e instanceof Error ? e.message : "Failed to release milestone");
-      }
-    }
-  };
+      const txHash = await contract.releaseMilestone(onChainCampaignId, milestoneId);
+
+      alert(`Milestone ${milestoneId} released! Tx: ${txHash.slice(0, 10)}...`);
+      router.invalidate();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to release milestone");
     }

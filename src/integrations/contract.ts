@@ -6,6 +6,8 @@ import type { Log, Interface } from "ethers";
 const FUNDLOOM_FACTORY_ADDRESS = import.meta.env.VITE_FUNDLOOM_FACTORY_ADDRESS || "";
 const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 
+const TX_TIMEOUT_MS = 180000; // 3 minutes for slow testnet
+
 export interface CampaignData {
   id: number;
   creator: string;
@@ -41,7 +43,9 @@ export class FundloomContract {
   async createCampaign(goalUSDC: number, deadlineUnix: number): Promise<number> {
     const goal = ethers.parseUnits(goalUSDC.toString(), 6); // USDC has 6 decimals
     const tx = await this.contract.createCampaign(goal, deadlineUnix);
-    const receipt = await tx.wait();
+
+    // Wait with timeout
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
 
     // Find CampaignCreated event
     const event = receipt.logs
@@ -58,6 +62,33 @@ export class FundloomContract {
       );
 
     return Number(event?.args?.id ?? 0);
+  }
+
+  private async waitForTransaction(
+    txHash: string,
+    timeoutMs: number,
+  ): Promise<ethers.TransactionReceipt> {
+    const provider = this.signer.provider;
+    if (!provider) {
+      throw new Error("No provider available");
+    }
+
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const receipt = await provider.getTransactionReceipt(txHash);
+        if (receipt) {
+          if (receipt.status === 0) {
+            throw new Error("Transaction failed");
+          }
+          return receipt;
+        }
+      } catch (error) {
+        // Continue polling on error
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s between checks
+    }
+    throw new Error(`Transaction timed out after ${timeoutMs / 1000}s. Hash: ${txHash}`);
   }
 
   async contribute(campaignId: number, amountUSDC: number): Promise<string> {
@@ -80,17 +111,17 @@ export class FundloomContract {
 
     if (allowance < amount) {
       const approveTx = await usdcContract.approve(FUNDLOOM_FACTORY_ADDRESS, amount);
-      await approveTx.wait();
+      await this.waitForTransaction(approveTx.hash, TX_TIMEOUT_MS);
     }
 
     const tx = await this.contract.contribute(campaignId, amount);
-    const receipt = await tx.wait();
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
     return receipt.hash;
   }
 
   async withdraw(campaignId: number): Promise<string> {
     const tx = await this.contract.withdraw(campaignId);
-    const receipt = await tx.wait();
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
     return receipt.hash;
   }
 
@@ -120,19 +151,19 @@ export class FundloomContract {
   async addMilestone(campaignId: number, description: string, amountUSDC: number): Promise<string> {
     const amount = ethers.parseUnits(amountUSDC.toString(), 6);
     const tx = await this.contract.addMilestone(campaignId, description, amount);
-    const receipt = await tx.wait();
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
     return receipt.hash;
   }
 
   async approveMilestone(campaignId: number, milestoneId: number): Promise<string> {
     const tx = await this.contract.approveMilestone(campaignId, milestoneId);
-    const receipt = await tx.wait();
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
     return receipt.hash;
   }
 
   async releaseMilestone(campaignId: number, milestoneId: number): Promise<string> {
     const tx = await this.contract.releaseMilestone(campaignId, milestoneId);
-    const receipt = await tx.wait();
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
     return receipt.hash;
   }
 

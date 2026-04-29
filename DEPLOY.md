@@ -57,9 +57,11 @@ forge script script/DeployFundloomFactory.s.sol \
 ## Frontend Integration
 
 The ABI is already generated at:
+
 - `src/integrations/FundloomFactoryABI.json`
 
 The contract interaction layer is at:
+
 - `src/integrations/contract.ts`
 
 ## Testing the Deployment

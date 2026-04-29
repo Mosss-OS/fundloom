@@ -4,7 +4,7 @@ out = "out"
 libs = ["node_modules", "lib"]
 
 [rpc_endpoints]
-base-sepolia = "https://sepolia.base.org"
+base-sepolia = "${BASE_SEPOLIA_RPC_URL}"
 base-mainnet = "https://mainnet.base.org"
 
 [etherscan]

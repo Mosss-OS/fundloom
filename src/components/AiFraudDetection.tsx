@@ -3,17 +3,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
 import { detectFraud } from "@/lib/groq";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
+import type { Tables } from "@/integrations/supabase/types";
+
+interface CreatorHistory {
+  campaignsCreated: number;
+  successfulCampaigns: number;
+  totalRaised: number;
+}
 
 export function AiFraudDetection({
   campaign,
   creatorHistory,
 }: {
-  campaign: any;
-  creatorHistory?: {
-    campaignsCreated: number;
-    successfulCampaigns: number;
-    totalRaised: number;
-  };
+  campaign: Tables<"campaigns">;
+  creatorHistory?: CreatorHistory;
 }) {
   const { user } = useFundloomAuth();
   const [loading, setLoading] = useState(false);

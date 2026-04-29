@@ -5,6 +5,7 @@ You are a world-class product engineer, blockchain developer, and Apple-level UI
 Build a decentralized crowdfunding platform called "Fundloom".
 
 This platform must combine:
+
 - Web3 (blockchain transparency)
 - Web2 (fiat usability)
 - Apple-grade UI (minimal, fluid, premium)
@@ -14,6 +15,7 @@ This platform must combine:
 CORE PRODUCT IDEA:
 
 Fundloom allows users to:
+
 - Create crowdfunding campaigns
 - Receive funding via crypto (USDC on Base Sepolia) or fiat
 - Withdraw funds in their preferred currency
@@ -23,21 +25,25 @@ Fundloom allows users to:
 TECH STACK:
 
 Frontend:
+
 - Vite, react.js
 - Tailwind CSS
 - Framer Motion (for smooth Apple-like animations)
 - React Icons (minimal usage)
 
 Authentication:
+
 - Privy (EMAIL ONLY, no wallet connect required initially)
 - Automatically generate embedded wallet per user
 
 Blockchain:
+
 - Base Sepolia network
 - USDC (primary payment token)
 - Ethers.js or Viem
 
 Backend:
+
 - Supabase (Postgres DB)
 - Supabase Edge Functions (API layer)
 
@@ -61,12 +67,14 @@ NO manual wallet setup required.
 CORE FEATURES:
 
 1. USER DASHBOARD
+
 - Total funds raised
 - Active campaigns
 - Wallet balance (USDC)
 
 2. CREATE CAMPAIGN
-Fields:
+   Fields:
+
 - Title
 - Description
 - Funding goal (USD equivalent)
@@ -77,9 +85,11 @@ Fields:
 3. FUND CAMPAIGN
 
 CRYPTO:
+
 - Pay using USDC (Base Sepolia)
 
 FIAT:
+
 - Placeholder for Flutterwave integration
 - Convert fiat → USDC internally
 
@@ -112,12 +122,14 @@ DATABASE (SUPABASE):
 Tables:
 
 users:
+
 - id
 - email
 - wallet_address
 - created_at
 
 campaigns:
+
 - id
 - user_id
 - title
@@ -128,6 +140,7 @@ campaigns:
 - status
 
 donations:
+
 - id
 - campaign_id
 - donor_wallet
@@ -135,6 +148,7 @@ donations:
 - tx_hash
 
 transactions:
+
 - id
 - type
 - amount
@@ -154,6 +168,7 @@ EDGE FUNCTIONS:
 UI/UX REQUIREMENTS (VERY IMPORTANT)
 
 Design Style:
+
 - Inspired by Apple iOS + Linear
 - Minimal
 - Clean spacing
@@ -161,11 +176,13 @@ Design Style:
 - Rounded corners (12–20px)
 
 Color System:
+
 - Base: white / soft gray
 - Accent: no gradient
 - Glassmorphism panels
 
 Typography:
+
 - Inter / SF Pro style
 - Bold headings
 - Light body text
@@ -180,33 +197,38 @@ MOBILE-FIRST DESIGN:
 
 ---
 
-Warm off-white + deep ink 
+Warm off-white + deep ink
 
 Editorial, premium feel. Cream background, near-black text, subtle warmth.
 
-----
+---
 
 SCREENS TO BUILD:
 
 1. Onboarding Screen
+
 - Email input
 - Clean, minimal
 
 2. Dashboard
+
 - Balance card
 - Campaign cards
 - Quick actions
 
 3. Campaign Details
+
 - Large hero image
 - Funding progress
 - Contributors list
 
 4. Create Campaign
+
 - Clean form
 - Step-based UI
 
 5. Payment Modal
+
 - Select payment type
 - Confirm transaction
 
@@ -249,6 +271,7 @@ DEPLOYMENT:
 GOAL:
 
 Build a production-ready MVP that feels:
+
 - Simple like Apple
 - Powerful like Web3
 - Accessible like fintech

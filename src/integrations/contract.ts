@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import FundloomFactoryABI from "./FundloomFactoryABI.json";
+import type { Log, Interface } from "ethers";
 
 // Base Sepolia addresses
 const FUNDLOOM_FACTORY_ADDRESS = import.meta.env.VITE_FUNDLOOM_FACTORY_ADDRESS || "";
@@ -44,14 +45,17 @@ export class FundloomContract {
 
     // Find CampaignCreated event
     const event = receipt.logs
-      .map((log: any) => {
+      .map((log: Log) => {
         try {
           return this.contract.interface.parseLog(log);
         } catch {
           return null;
         }
       })
-      .find((e: any) => e?.name === "CampaignCreated");
+      .find(
+        (e): e is NonNullable<ReturnType<Interface["parseLog"]>> =>
+          e !== null && e?.name === "CampaignCreated",
+      );
 
     return Number(event?.args?.id ?? 0);
   }

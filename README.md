@@ -11,37 +11,41 @@ Fundloom bridges the gap between traditional crowdfunding and decentralized fina
 ## Features
 
 ### Core Features
+
 - **Multi-Rail Funding** — Accept both crypto (USDC on Base Sepolia) and fiat payments
 - **Milestone-Based Escrow** — Funds released progressively as campaign goals are achieved
 - **Gas Abstraction** — Zero gas fees for users; gas costs are abstracted away
 - **Embedded Wallets** — Auto-generated wallets for seamless onboarding without browser extensions
 
 ### User Experience
+
 - **Email-Only Authentication** — Simple login with just email (powered by Privy)
 - **Apple-Grade UI** — Premium, polished interface built with Tailwind CSS and Framer Motion
 - **Real-Time Progress** — Live funding updates and campaign status tracking
 - **Social Virality** — ShareRow component for easy campaign promotion
 
 ### Trust & Security
+
 - **On-Chain Transparency** — Every transaction verifiable on Base Sepolia blockchain
 - **Fraud Detection** — AI-powered system to identify and flag suspicious campaigns
 - **Verified Badges** — Trust indicators for verified campaign creators
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Vite, React 19, Tailwind CSS 4, Framer Motion |
-| **Authentication** | Privy (email-only, embedded wallets) |
-| **Blockchain** | Base Sepolia, USDC, Ethers.js, Foundry |
-| **Smart Contracts** | Solidity (FundloomFactory.sol) |
-| **Backend** | Supabase (Postgres DB, Edge Functions) |
-| **Deployment** | Vercel |
-| **UI Components** | Radix UI, Lucide Icons, Recharts |
+| Layer               | Technology                                    |
+| ------------------- | --------------------------------------------- |
+| **Frontend**        | Vite, React 19, Tailwind CSS 4, Framer Motion |
+| **Authentication**  | Privy (email-only, embedded wallets)          |
+| **Blockchain**      | Base Sepolia, USDC, Ethers.js, Foundry        |
+| **Smart Contracts** | Solidity (FundloomFactory.sol)                |
+| **Backend**         | Supabase (Postgres DB, Edge Functions)        |
+| **Deployment**      | Vercel                                        |
+| **UI Components**   | Radix UI, Lucide Icons, Recharts              |
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - [Bun](https://bun.sh) (recommended) or npm
 - Supabase account
@@ -91,6 +95,7 @@ The FundloomFactory smart contract is ready for deployment to Base Sepolia.
    - Faucets: https://www.coinbase.com/faucets/base-sepolia-faucet
 
 2. **Deploy the contract**:
+
    ```bash
    source .env
    forge script script/DeployFundloomFactory.s.sol \
@@ -202,6 +207,7 @@ Built with 🔗 by [Mosss-OS](https://github.com/Mosss-OS)
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
 Foundry consists of:
+
 - **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
 - **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
 - **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.

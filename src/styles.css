@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
@@ -83,12 +83,12 @@
   --radius: 0.875rem;
 
   /* Editorial palette */
-  --canvas: oklch(0.972 0.012 80);          /* warm off-white */
-  --paper:  oklch(0.985 0.008 80);          /* lighter card surface */
-  --ink:    oklch(0.205 0.018 60);          /* deep warm near-black */
-  --ink-soft: oklch(0.42 0.015 60);         /* secondary text */
-  --line:   oklch(0.88 0.012 75);           /* hairline borders */
-  --forest: oklch(0.42 0.07 145);           /* single accent */
+  --canvas: oklch(0.972 0.012 80); /* warm off-white */
+  --paper: oklch(0.985 0.008 80); /* lighter card surface */
+  --ink: oklch(0.205 0.018 60); /* deep warm near-black */
+  --ink-soft: oklch(0.42 0.015 60); /* secondary text */
+  --line: oklch(0.88 0.012 75); /* hairline borders */
+  --forest: oklch(0.42 0.07 145); /* single accent */
   --forest-soft: oklch(0.92 0.04 145);
 
   --background: var(--canvas);
@@ -174,7 +174,10 @@
     text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
     font-weight: 400;
@@ -197,6 +200,10 @@
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-100%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }

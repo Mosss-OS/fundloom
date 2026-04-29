@@ -91,14 +91,12 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            !onLanding && (
-              <Link
-                to="/login"
-                className="rounded-full bg-ink px-4 py-2 text-sm text-canvas transition hover:bg-ink/90"
-              >
-                Sign in
-              </Link>
-            )
+            <Link
+              to="/login"
+              className="rounded-full bg-ink px-4 py-2 text-sm text-canvas transition hover:bg-ink/90"
+            >
+              Sign in
+            </Link>
           )}
         </div>
       </div>

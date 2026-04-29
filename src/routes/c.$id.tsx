@@ -29,12 +29,32 @@ import {
   baseScanAddressUrl,
   formatTimeAgo,
 } from "@/lib/format";
+import type { Tables } from "@/integrations/supabase/types";
 
 import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
 import sample3 from "@/assets/sample-campaign-3.jpg";
 
 const fallbacks = [sample1, sample2, sample3];
+
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <main className="mx-auto max-w-2xl px-5 py-24 text-center">
+      <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
+      <p className="mt-3 text-sm text-ink-soft">{error.message}</p>
+      <button
+        onClick={() => {
+          router.invalidate();
+          reset();
+        }}
+        className="mt-6 rounded-full bg-ink px-5 py-2.5 text-sm text-canvas"
+      >
+        Try again
+      </button>
+    </main>
+  );
+}
 
 export const Route = createFileRoute("/c/$id")({
   loader: async ({ params }) => {
@@ -59,24 +79,7 @@ export const Route = createFileRoute("/c/$id")({
       <h1 className="font-display text-4xl text-ink">Campaign not found</h1>
     </main>
   ),
-  errorComponent: ({ error, reset }) => {
-    const router = useRouter();
-    return (
-      <main className="mx-auto max-w-2xl px-5 py-24 text-center">
-        <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
-        <p className="mt-3 text-sm text-ink-soft">{error.message}</p>
-        <button
-          onClick={() => {
-            router.invalidate();
-            reset();
-          }}
-          className="mt-6 rounded-full bg-ink px-5 py-2.5 text-sm text-canvas"
-        >
-          Try again
-        </button>
-      </main>
-    );
-  },
+  errorComponent: ErrorComponent,
   component: CampaignDetail,
 });
 
@@ -109,7 +112,7 @@ function CampaignDetail() {
     };
   }, [user, data.campaign.id, data.viewer]);
 
-  const c = data.campaign as any;
+  const c = data.campaign as unknown as Tables<"campaigns">;
   const cover = c.cover_image_url || fallbacks[0];
   const pct = progress(c.amount_raised, c.goal_amount);
   const isOwner = user?.id === c.user_id;
@@ -123,7 +126,7 @@ function CampaignDetail() {
     setWithdrawing(true);
     try {
       // Get the on-chain campaign ID from the campaign data
-      const onChainCampaignId = (c as any).on_chain_campaign_id;
+      const onChainCampaignId = c.on_chain_campaign_id;
 
       if (onChainCampaignId !== undefined && onChainCampaignId !== null) {
         // Use smart contract withdrawal (legacy - for campaigns without milestones)
@@ -164,7 +167,7 @@ function CampaignDetail() {
   const handleReleaseMilestone = async (milestoneId: number) => {
     if (!user) return;
     try {
-      const onChainCampaignId = (c as any).on_chain_campaign_id;
+      const onChainCampaignId = c.on_chain_campaign_id;
       if (onChainCampaignId === undefined || onChainCampaignId === null) {
         throw new Error("No on-chain campaign found");
       }
@@ -295,7 +298,7 @@ function CampaignDetail() {
               <UpdatesSection
                 campaignId={c.id}
                 isOwner={isOwner}
-                updates={data.updates as any[]}
+                updates={data.updates}
                 userId={user?.id ?? null}
                 onChanged={() => router.invalidate()}
               />
@@ -305,13 +308,13 @@ function CampaignDetail() {
               <CommentsSection
                 campaignId={c.id}
                 ownerId={c.user_id}
-                comments={data.comments as any[]}
+                comments={data.comments}
                 userId={user?.id ?? null}
                 onChanged={() => router.invalidate()}
               />
             )}
 
-            {tab === "backers" && <BackersSection donations={data.donations as any[]} />}
+            {tab === "backers" && <BackersSection donations={data.donations} />}
           </div>
         </div>
 
@@ -371,7 +374,7 @@ function CampaignDetail() {
                   )}
 
                   {/* Info message when milestones exist */}
-                  {c.milestones_count > 0 && (
+                  {((c.milestones_count as number) ?? 0) > 0 && (
                     <div className="mt-6 rounded-2xl bg-blue-50 p-4 text-sm text-blue-700">
                       <p className="font-medium">Milestone-based withdrawals active</p>
                       <p className="mt-1 text-xs">
@@ -420,7 +423,11 @@ function CampaignDetail() {
 
 /* ----------------------------- Sub-sections --------------------------- */
 
-function CreatorCard({ campaign }: { campaign: any }) {
+function CreatorCard({
+  campaign,
+}: {
+  campaign: Tables<"campaigns"> & { users?: { wallet_address?: string | null } };
+}) {
   const wallet = campaign.users?.wallet_address as string | undefined;
   const link = baseScanAddressUrl(wallet ?? null);
   return (
@@ -447,7 +454,7 @@ function CreatorCard({ campaign }: { campaign: any }) {
   );
 }
 
-function BackersSection({ donations }: { donations: any[] }) {
+function BackersSection({ donations }: { donations: Tables<"donations">[] }) {
   if (donations.length === 0) {
     return (
       <div className="rounded-2xl bg-paper p-6 text-sm text-ink-soft hairline">
@@ -520,7 +527,7 @@ function UpdatesSection({
 }: {
   campaignId: string;
   isOwner: boolean;
-  updates: any[];
+  updates: Tables<"campaign_updates">[];
   userId: string | null;
   onChanged: () => void;
 }) {
@@ -658,7 +665,9 @@ function CommentsSection({
 }: {
   campaignId: string;
   ownerId: string;
-  comments: any[];
+  comments: (Tables<"campaign_comments"> & {
+    users?: { display_name?: string | null; wallet_address?: string | null };
+  })[];
   userId: string | null;
   onChanged: () => void;
 }) {

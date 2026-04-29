@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { useWallets } from "@privy-io/react-auth";
+import { useWallets, type Wallet } from "@privy-io/react-auth";
 
 /**
  * Get an ethers v6 Signer from Privy's embedded wallet.
@@ -30,9 +30,20 @@ export function useEthersSigner() {
 /**
  * Convert a Privy wallet to an ethers Signer (for server-side or non-hook usage)
  */
-export async function privyWalletToSigner(wallet: any): Promise<ethers.Signer> {
-  const provider = await wallet.getEthereumProvider();
-  const ethersProvider = new ethers.BrowserProvider(provider);
+export async function privyWalletToSigner(wallet: unknown): Promise<ethers.Signer> {
+  if (typeof wallet !== "object" || wallet === null) {
+    throw new Error("Invalid wallet: not an object");
+  }
+
+  const walletRecord = wallet as Record<string, unknown>;
+  const getEthereumProvider = walletRecord.getEthereumProvider;
+
+  if (typeof getEthereumProvider !== "function") {
+    throw new Error("Invalid wallet: missing getEthereumProvider method");
+  }
+
+  const provider = await getEthereumProvider.call(walletRecord);
+  const ethersProvider = new ethers.BrowserProvider(provider as never);
   return await ethersProvider.getSigner();
 }
 

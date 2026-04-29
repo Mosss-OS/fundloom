@@ -6,9 +6,7 @@
       "contractName": "FundloomFactory",
       "contractAddress": "0x0f5b16b1430689a7aced3235658df08987fdc49b",
       "function": null,
-      "arguments": [
-        "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
-      ],
+      "arguments": ["0x036CbD53842c5426634e7929541eC2318f3dCF7e"],
       "transaction": {
         "from": "0xe81e8078f2d284c92d6d97b5d4769af81e0ca11c",
         "gas": "0x125f19",

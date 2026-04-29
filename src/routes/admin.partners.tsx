@@ -218,7 +218,6 @@ function AdminPartnersPage() {
                 </div>
                 <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-canvas hairline">
                   {p.logo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={p.logo_url}
                       alt={p.name}
@@ -432,7 +431,6 @@ function PartnerFormDialog({
             <div className="flex items-center gap-3">
               <div className="flex h-16 w-24 items-center justify-center rounded-lg bg-canvas hairline">
                 {logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={logoUrl}
                     alt="logo preview"

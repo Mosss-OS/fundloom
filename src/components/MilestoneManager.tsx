@@ -88,7 +88,7 @@ export function MilestoneManager({
       } else {
         const signer = await getSigner();
         if (!signer) throw new Error("Wallet not available");
-        
+
         const contract = getContractInstance(signer);
         await contract.releaseMilestone(campaignId, milestoneId);
       }

@@ -8,6 +8,7 @@ import { getContractInstance } from "@/integrations/contract";
 import { createCampaign, uploadCampaignCover } from "@/server/campaigns.functions";
 import { AiCampaignOptimizer } from "@/components/AiCampaignOptimizer";
 import { formatUSD } from "@/lib/format";
+import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/create")({
   head: () => ({ meta: [{ title: "New campaign — Fundloom" }] }),
@@ -128,7 +129,7 @@ function CreatePage() {
           deadline: new Date(deadline).toISOString(),
           coverImageUrl: cover.trim() || null,
           payoutPreference: payout,
-          category: category as any,
+          category: category as Tables<"campaigns">["category"],
         },
       });
 

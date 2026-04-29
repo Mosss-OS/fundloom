@@ -147,14 +147,24 @@ function Index() {
       </section>
 
       {/* Stats — "We move money" */}
-      <section className="border-y border-line bg-paper/60">
+      <section className="relative overflow-hidden border-y border-line bg-paper/60">
+        <Floater className="right-10 top-16 hidden md:block" delay={0.2}>
+          <Sunburst className="h-16 w-16" color="#E8E4D5" />
+        </Floater>
+        <Floater className="left-8 bottom-20 hidden md:block" delay={0.4}>
+          <Blob className="h-8 w-8" color="#9CA8FF" />
+        </Floater>
         <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-ink-soft">
             <Sparkles className="size-3.5 text-forest" />
             By the numbers
           </div>
           <h2 className="mt-4 max-w-3xl font-display text-4xl leading-[1.05] text-ink sm:text-6xl">
-            We move money <em className="not-italic text-forest">honestly.</em>
+            We move money{" "}
+            <span className="relative inline-block not-italic text-ink">
+              honestly.
+              <Underline className="absolute -bottom-2 left-0 h-3 w-full text-forest" />
+            </span>
           </h2>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-soft">
             Since launch, Fundloom has powered transparent giving across continents — every dollar
@@ -276,7 +286,13 @@ function Index() {
       </section>
 
       {/* How it works */}
-      <section className="bg-ink text-canvas">
+      <section className="relative overflow-hidden bg-ink text-canvas">
+        <Floater className="right-12 top-20 hidden md:block" delay={0.3}>
+          <SmileMoon className="h-10 w-16 rotate-[18deg]" color="#F4C26B" />
+        </Floater>
+        <Floater className="left-10 bottom-16 hidden md:block" delay={0.5}>
+          <Dot className="h-3 w-3" color="#9CA8FF" />
+        </Floater>
         <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-canvas/60">
             <Layers className="size-3.5" />

@@ -12,7 +12,7 @@ interface IERC20 {
 }
 
 contract FundloomFactory {
-    IERC20 public immutable usdc;
+    IERC20 public immutable USDC;
     address public daoToken; // Simple governance token for voting
 
     // DAO Governance Parameters
@@ -72,7 +72,7 @@ contract FundloomFactory {
     event DisputeCancelled(uint256 indexed disputeId);
 
     constructor(address _usdc, address _daoToken) {
-        usdc = IERC20(_usdc);
+        USDC = IERC20(_usdc);
         daoToken = _daoToken;
     }
 
@@ -134,7 +134,7 @@ contract FundloomFactory {
         uint256 releaseAmount = m.amount;
         m.amount = 0;
         
-        require(usdc.transfer(c.creator, releaseAmount), "xfer fail");
+        require(USDC.transfer(c.creator, releaseAmount), "xfer fail");
         emit MilestoneReleased(campaignId, milestoneId, releaseAmount);
     }
 
@@ -143,7 +143,7 @@ contract FundloomFactory {
         Campaign storage c = campaigns[id];
         require(block.timestamp <= c.deadline, "ended");
         require(amount > 0, "amount=0");
-        require(usdc.transferFrom(msg.sender, address(this), amount), "xfer fail");
+        require(USDC.transferFrom(msg.sender, address(this), amount), "xfer fail");
         c.raised += amount;
         emit Contributed(id, msg.sender, amount);
     }
@@ -155,7 +155,7 @@ contract FundloomFactory {
         require(!c.withdrawn, "done");
         c.withdrawn = true;
         uint256 amt = c.raised;
-        require(usdc.transfer(c.creator, amt), "xfer fail");
+        require(USDC.transfer(c.creator, amt), "xfer fail");
         emit Withdrawn(id, c.creator, amt);
     }
 
@@ -255,9 +255,26 @@ contract FundloomFactory {
         
         // Execute based on dispute type
         if (d.disputeType == DisputeType.WITHDRAWAL) {
-            executeWithdrawalDispute(d);
+            // Execute withdrawal dispute - transfer funds to campaign creator
+            Campaign storage c = campaigns[d.campaignId];
+            require(!c.withdrawn, "already withdrawn");
+            uint256 amt = c.raised;
+            c.withdrawn = true;
+            require(USDC.transfer(c.creator, amt), "transfer failed");
+            emit Withdrawn(d.campaignId, c.creator, amt);
         } else if (d.disputeType == DisputeType.MILESTONE_RELEASE) {
-            executeMilestoneReleaseDispute(d);
+            // Execute milestone release dispute
+            Campaign storage c = campaigns[d.campaignId];
+            require(d.milestoneId < c.milestonesCount, "invalid milestone");
+            Milestone storage m = c.milestones[d.milestoneId];
+            require(m.exists, "milestone does not exist");
+            require(m.status == MilestoneStatus.Approved, "milestone not approved");
+            require(m.amount > 0, "nothing to release");
+            m.status = MilestoneStatus.Released;
+            uint256 releaseAmount = m.amount;
+            m.amount = 0;
+            require(USDC.transfer(c.creator, releaseAmount), "transfer failed");
+            emit MilestoneReleased(d.campaignId, d.milestoneId, releaseAmount);
         }
         
         d.executed = true;
@@ -325,39 +342,34 @@ contract FundloomFactory {
         return disputes[disputeId].proposer;
     }
 
+    // ========== DISPUTE QUERY FUNCTIONS ==========
+
+    /// @notice Get all dispute IDs for a campaign
+    function getDisputesForCampaign(uint256 campaignId) external view returns (uint256[] memory) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < disputes.length; i++) {
+            if (disputes[i].campaignId == campaignId && disputeExists[i]) {
+                count++;
+            }
+        }
+        
+        uint256[] memory result = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < disputes.length; i++) {
+            if (disputes[i].campaignId == campaignId && disputeExists[i]) {
+                result[index] = i;
+                index++;
+            }
+        }
+        return result;
+    }
+
+    /// @notice Get total number of disputes
+    function getTotalDisputes() external view returns (uint256) {
+        return disputes.length;
+    }
+
     // ========== HELPER FUNCTIONS ==========
-
-    function executeWithdrawalDispute(Dispute storage d) internal {
-        Campaign storage c = campaigns[d.campaignId];
-        require(msg.sender == c.creator, "only creator can execute");
-        require(!c.withdrawn, "already withdrawn");
-        
-        uint256 amt = c.raised;
-        c.withdrawn = true;
-        
-        require(usdc.transfer(c.creator, amt), "transfer failed");
-        
-        emit Withdrawn(d.campaignId, c.creator, amt);
-    }
-
-    function executeMilestoneReleaseDispute(Dispute storage d) internal {
-        Campaign storage c = campaigns[d.campaignId];
-        require(msg.sender == c.creator, "only creator can execute");
-        require(d.milestoneId < c.milestonesCount, "invalid milestone");
-        
-        Milestone storage m = c.milestones[d.milestoneId];
-        require(m.exists, "milestone does not exist");
-        require(m.status == MilestoneStatus.Approved, "milestone not approved");
-        require(m.amount > 0, "nothing to release");
-        
-        m.status = MilestoneStatus.Released;
-        uint256 releaseAmount = m.amount;
-        m.amount = 0;
-        
-        require(usdc.transfer(c.creator, releaseAmount), "transfer failed");
-        
-        emit MilestoneReleased(d.campaignId, d.milestoneId, releaseAmount);
-    }
 
     function getVotingPower(address account) internal view returns (uint256) {
         // Simple ERC20 balance check - in reality this would be more complex

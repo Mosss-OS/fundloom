@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
-import "../src/FundloomFactory.sol";
+import {Test} from "forge-std/Test.sol";
+import {FundloomFactory} from "../src/FundloomFactory.sol";
 
 contract DisputeTest is Test {
     FundloomFactory public factory;

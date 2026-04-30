@@ -31,6 +31,11 @@ export enum MilestoneStatus {
   Released = 2,
 }
 
+export enum DisputeType {
+  WITHDRAWAL = 0,
+  MILESTONE_RELEASE = 1,
+}
+
 export class FundloomContract {
   private contract: ethers.Contract;
   private signer: ethers.Signer;
@@ -167,6 +172,86 @@ export class FundloomContract {
     return receipt.hash;
   }
 
+
+  async createDispute(campaignId: number, milestoneId: number, disputeType: number): Promise<number> {
+    const tx = await this.contract.createDispute(campaignId, milestoneId, disputeType);
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
+    // Find DisputeCreated event
+    for (const log of receipt.logs) {
+      try {
+        const parsed = this.contract.interface.parseLog(log);
+        if (parsed?.name === "DisputeCreated") {
+          return Number(parsed.args.disputeId);
+        }
+      } catch (e) {
+        // Skip unparsable logs
+      }
+    }
+    throw new Error("DisputeCreated event not found in transaction receipt");
+  }
+
+  async voteOnDispute(disputeId: number, support: boolean): Promise<string> {
+    const tx = await this.contract.voteOnDispute(disputeId, support);
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
+    return receipt.hash;
+  }
+
+  async executeDispute(disputeId: number): Promise<string> {
+    const tx = await this.contract.executeDispute(disputeId);
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
+    return receipt.hash;
+  }
+
+  async cancelDispute(disputeId: number): Promise<string> {
+    const tx = await this.contract.cancelDispute(disputeId);
+    const receipt = await this.waitForTransaction(tx.hash, TX_TIMEOUT_MS);
+    return receipt.hash;
+  }
+
+  async getDispute(disputeId: number): Promise<{
+    campaignId: number;
+    milestoneId: number;
+    disputeType: number;
+    proposer: string;
+    startTime: number;
+    endTime: number;
+    yesVotes: bigint;
+    noVotes: bigint;
+    executed: boolean;
+    cancelled: boolean;
+  }> {
+    const [campaignId, milestoneId, disputeType, proposer, startTime, endTime, yesVotes, noVotes, executed, cancelled] = 
+      await this.contract.getDispute(disputeId);
+    return {
+      campaignId: Number(campaignId),
+      milestoneId: Number(milestoneId),
+      disputeType: Number(disputeType),
+      proposer,
+      startTime: Number(startTime),
+      endTime: Number(endTime),
+      yesVotes,
+      noVotes,
+      executed,
+      cancelled
+    };
+  }
+
+  // Helper getter functions for testing
+  async getCampaignIdFromDispute(disputeId: number): Promise<number> {
+    return Number(await this.contract.getCampaignIdFromDispute(disputeId));
+  }
+
+  async getMilestoneIdFromDispute(disputeId: number): Promise<number> {
+    return Number(await this.contract.getMilestoneIdFromDispute(disputeId));
+  }
+
+  async getDisputeTypeFromDispute(disputeId: number): Promise<number> {
+    return Number(await this.contract.getDisputeTypeFromDispute(disputeId));
+  }
+
+  async getProposerFromDispute(disputeId: number): Promise<string> {
+    return await this.contract.getProposerFromDispute(disputeId);
+  }
   async getCampaignsCount(): Promise<number> {
     const count = await this.contract.campaignsCount();
     return Number(count);

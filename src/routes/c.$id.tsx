@@ -18,6 +18,7 @@ import { MilestoneManager } from "@/components/MilestoneManager";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { useEthersSigner } from "@/lib/ethers";
 import { getContractInstance } from "@/integrations/contract";
+import { DisputeType } from "@/integrations/contract";
 import { AiFraudDetection } from "@/components/AiFraudDetection";
 import { SmartDonorMatching } from "@/components/SmartDonorMatching";
 import {
@@ -83,7 +84,7 @@ export const Route = createFileRoute("/c/$id")({
   component: CampaignDetail,
 });
 
-type Tab = "story" | "milestones" | "updates" | "comments" | "backers";
+type Tab = "story" | "milestones" | "updates" | "comments" | "backers"; | "disputes";
 
 function CampaignDetail() {
   const data = Route.useLoaderData() as NonNullable<Awaited<ReturnType<typeof fetchCampaign>>>;
@@ -95,6 +96,20 @@ function CampaignDetail() {
   const [refunding, setRefunding] = useState(false);
   const [tab, setTab] = useState<Tab>("story");
   const [viewer, setViewer] = useState(data.viewer);
+  const [disputes, setDisputes] = useState<Array<{
+    id: number;
+    campaignId: number;
+    milestoneId: number;
+    disputeType: number;
+    proposer: string;
+    startTime: number;
+    endTime: number;
+    yesVotes: bigint;
+    noVotes: bigint;
+    executed: boolean;
+    cancelled: boolean;
+  }>>(null);
+  const [disputeLoading, setDisputeLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -164,6 +179,84 @@ function CampaignDetail() {
   };
 
   // Handle milestone-based withdrawal
+
+  // Handle dispute creation
+  const handleCreateDispute = async (milestoneId: number, disputeType: number) => {
+    if (!user) return;
+    setDisputeLoading(true);
+    try {
+      const onChainCampaignId = c.on_chain_campaign_id;
+      if (onChainCampaignId === undefined || onChainCampaignId === null) {
+        throw new Error("No on-chain campaign found");
+      }
+
+      const signer = await getSigner();
+      if (!signer) throw new Error("Wallet not available");
+
+      const contract = getContractInstance(signer);
+      const disputeId = await contract.createDispute(onChainCampaignId, milestoneId, disputeType);
+      
+      alert(`Dispute created! Dispute ID: ${disputeId}`);
+      // Refresh disputes
+      fetchDisputes();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to create dispute");
+    } finally {
+      setDisputeLoading(false);
+    }
+  };
+
+  // Handle voting on dispute
+  const handleVoteOnDispute = async (disputeId: number, support: boolean) => {
+    if (!user) return;
+    try {
+      const signer = await getSigner();
+      if (!signer) throw new Error("Wallet not available");
+
+      const contract = getContractInstance(signer);
+      const txHash = await contract.voteOnDispute(disputeId, support);
+      
+      alert(`Vote cast! Tx: ${txHash.slice(0, 10)}...`);
+      fetchDisputes();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to vote");
+    }
+  };
+
+  // Handle dispute execution
+  const handleExecuteDispute = async (disputeId: number) => {
+    if (!user) return;
+    try {
+      const signer = await getSigner();
+      if (!signer) throw new Error("Wallet not available");
+
+      const contract = getContractInstance(signer);
+      const txHash = await contract.executeDispute(disputeId);
+      
+      alert(`Dispute executed! Tx: ${txHash.slice(0, 10)}...`);
+      fetchDisputes();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to execute dispute");
+    }
+  };
+
+  // Fetch disputes for this campaign
+  const fetchDisputes = async () => {
+    if (!c.on_chain_campaign_id) return;
+    
+    try {
+      const signer = await getSigner();
+      if (!signer) return;
+      
+      const contract = getContractInstance(signer);
+      // Note: In a real implementation, you'd have a function to get all disputes for a campaign
+      // For now, we'll just show a placeholder
+      setDisputes(null);
+    } catch (e) {
+      console.error("Failed to fetch disputes:", e);
+    }
+  };
+
   const handleReleaseMilestone = async (milestoneId: number) => {
     if (!user) return;
     try {
@@ -315,6 +408,93 @@ function CampaignDetail() {
             )}
 
             {tab === "backers" && <BackersSection donations={data.donations} />}
+
+            {tab === "disputes" && (
+              <div className="space-y-4">
+                <div className="rounded-2xl bg-paper p-6 text-sm hairline">
+                  <h3 className="font-display text-lg text-ink">Dispute Resolution</h3>
+                  <p className="mt-2 text-ink-soft">
+                    This campaign has {disputes ? disputes.length : 0} active dispute(s).
+                  </p>
+                  {isOwner && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => handleCreateDispute(0, DisputeType.WITHDRAWAL)}
+                        disabled={disputeLoading}
+                        className="rounded-full bg-forest px-4 py-2 text-sm text-canvas disabled:opacity-50"
+                      >
+                        {disputeLoading ? "Creating..." : "Create Withdrawal Dispute"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {disputes && disputes.length > 0 ? (
+                  <div className="space-y-3">
+                    {disputes.map((d, i) => (
+                      <motion.div
+                        key={d.id}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: i * 0.03 }}
+                        className="rounded-2xl bg-paper p-5 hairline"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-medium text-ink">
+                              Dispute #{d.id} - {d.disputeType === DisputeType.WITHDRAWAL ? "Withdrawal" : "Milestone Release"}
+                            </div>
+                            <div className="mt-1 text-xs text-ink-soft">
+                              Created by {shortAddr(d.proposer)} · {formatTimeAgo(d.startTime * 1000)}
+                            </div>
+                          </div>
+                          {!d.executed && !d.cancelled && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleVoteOnDispute(d.id, true)}
+                                className="rounded-full bg-forest/10 px-3 py-1 text-xs text-forest"
+                              >
+                                Vote Yes
+                              </button>
+                              <button
+                                onClick={() => handleVoteOnDispute(d.id, false)}
+                                className="rounded-full bg-destructive/10 px-3 py-1 text-xs text-destructive"
+                              >
+                                Vote No
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-3 text-sm text-ink-soft">
+                          <div className="flex gap-4">
+                            <span>Yes: {d.yesVotes.toString()}</span>
+                            <span>No: {d.noVotes.toString()}</span>
+                          </div>
+                          {d.executed && (
+                            <div className="mt-2 text-xs text-forest">Executed</div>
+                          )}
+                          {d.cancelled && (
+                            <div className="mt-2 text-xs text-destructive">Cancelled</div>
+                          )}
+                        </div>
+                        {isOwner && !d.executed && !d.cancelled && d.endTime * 1000 < Date.now() && (
+                          <button
+                            onClick={() => handleExecuteDispute(d.id)}
+                            className="mt-3 rounded-full bg-ink px-4 py-2 text-xs text-canvas"
+                          >
+                            Execute Dispute
+                          </button>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-paper p-6 text-sm text-ink-soft hairline">
+                    No disputes yet.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

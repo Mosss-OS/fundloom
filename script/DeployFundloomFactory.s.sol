@@ -17,7 +17,7 @@ contract DeployFundloomFactory is Script {
         
         vm.startBroadcast(deployerPrivateKey);
         
-        FundloomFactory factory = new FundloomFactory(USDC_BASE_SEPOLIA);
+        FundloomFactory factory = new FundloomFactory(USDC_BASE_SEPOLIA, address(0x036CbD53842c5426634e7929541eC2318f3dCF7e)); // Using zero address as placeholder for DAO token
         
         console2.log("FundloomFactory deployed to:", address(factory));
         console2.log("USDC address:", USDC_BASE_SEPOLIA);

@@ -252,6 +252,17 @@ export class FundloomContract {
   async getProposerFromDispute(disputeId: number): Promise<string> {
     return await this.contract.getProposerFromDispute(disputeId);
   }
+
+  async getDisputesForCampaign(campaignId: number): Promise<number[]> {
+    const result = await this.contract.getDisputesForCampaign(campaignId);
+    return result.map((id: bigint) => Number(id));
+  }
+
+  async getTotalDisputes(): Promise<number> {
+    const count = await this.contract.getTotalDisputes();
+    return Number(count);
+  }
+
   async getCampaignsCount(): Promise<number> {
     const count = await this.contract.campaignsCount();
     return Number(count);

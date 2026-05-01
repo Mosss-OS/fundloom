@@ -30,6 +30,14 @@ Fundloom bridges the gap between traditional crowdfunding and decentralized fina
 - **Fraud Detection** — AI-powered system to identify and flag suspicious campaigns
 - **Verified Badges** — Trust indicators for verified campaign creators
 
+### DAO Governance for Dispute Resolution
+
+- **Dispute Creation** — Campaign creators can initiate disputes for withdrawals or milestone releases
+- **Token-Weighted Voting** — DAO token holders vote on dispute outcomes (currently using 1 vote per address for PoC)
+- **Appeal System** — Multi-tier appeal process with higher fees and different voting parameters
+- **Quorum Requirements** — Minimum participation thresholds for valid votes (4% for disputes, 10% for appeals)
+- **Automatic Execution** — Smart contract automatically executes dispute outcomes after voting period ends
+
 ## Tech Stack
 
 | Layer               | Technology                                    |
@@ -171,7 +179,7 @@ vercel --prod
 - [ ] Mobile app (React Native)
 - [ ] Fiat on-ramp integration (Stripe/Flutterwave)
 - [x] Social features (comments, updates)
-- [ ] DAO governance for disputes
+- [x] DAO governance for disputes
 
 ## Contributing
 

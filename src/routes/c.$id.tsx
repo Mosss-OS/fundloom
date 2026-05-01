@@ -84,7 +84,7 @@ export const Route = createFileRoute("/c/$id")({
   component: CampaignDetail,
 });
 
-type Tab = "story" | "milestones" | "updates" | "comments" | "backers"; | "disputes";
+type Tab = "story" | "milestones" | "updates" | "comments" | "backers" | "disputes";
 
 function CampaignDetail() {
   const data = Route.useLoaderData() as NonNullable<Awaited<ReturnType<typeof fetchCampaign>>>;
@@ -126,6 +126,18 @@ function CampaignDetail() {
       cancelled = true;
     };
   }, [user, data.campaign.id, data.viewer]);
+
+  // Fetch disputes when component mounts or campaign ID changes
+  useEffect(() => {
+    fetchDisputes();
+    
+    // Set up polling for real-time dispute updates
+    const interval = setInterval(fetchDisputes, 10000); // Poll every 10 seconds
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [c.on_chain_campaign_id]);
 
   const c = data.campaign as unknown as Tables<"campaigns">;
   const cover = c.cover_image_url || fallbacks[0];
@@ -249,9 +261,16 @@ function CampaignDetail() {
       if (!signer) return;
       
       const contract = getContractInstance(signer);
-      // Note: In a real implementation, you'd have a function to get all disputes for a campaign
-      // For now, we'll just show a placeholder
-      setDisputes(null);
+      const disputeIds = await contract.getDisputesForCampaign(c.on_chain_campaign_id);
+      
+      // Fetch details for each dispute
+      const disputeDetails = await Promise.all(
+        disputeIds.map(async (id: number) => {
+          return await contract.getDispute(id);
+        })
+      );
+      
+      setDisputes(disputeDetails);
     } catch (e) {
       console.error("Failed to fetch disputes:", e);
     }

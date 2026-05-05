@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { shortAddr } from "@/lib/format";
-import { isCurrentUserAdmin } from "@/server/partners.functions";
+import { isCurrentUserAdmin } from "@/functions/partners.functions";
 
 export function SiteHeader() {
   const { user, logout } = useFundloomAuth();

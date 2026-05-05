@@ -2,15 +2,15 @@ import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ExternalLink, MessageCircle, Megaphone, Trash2 } from "lucide-react";
-import { fetchCampaign } from "@/server/campaigns.functions";
-import { withdrawFunds } from "@/server/donations.functions";
+import { fetchCampaign } from "@/functions/campaigns.functions";
+import { withdrawFunds } from "@/functions/donations.functions";
 import {
   postCampaignUpdate,
   deleteCampaignUpdate,
   postCampaignComment,
   deleteCampaignComment,
   requestRefund,
-} from "@/server/engagement.functions";
+} from "@/functions/engagement.functions";
 import { PaymentModal } from "@/components/PaymentModal";
 import { ShareRow } from "@/components/ShareRow";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -31,6 +31,7 @@ import {
   formatTimeAgo,
 } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
 import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
@@ -127,17 +128,53 @@ function CampaignDetail() {
     };
   }, [user, data.campaign.id, data.viewer]);
 
-  // Fetch disputes when component mounts or campaign ID changes
+  // Real-time updates with Supabase Realtime
   useEffect(() => {
     fetchDisputes();
-    
-    // Set up polling for real-time dispute updates
-    const interval = setInterval(fetchDisputes, 10000); // Poll every 10 seconds
-    
+
+    // Set up Supabase Realtime subscriptions for campaign-related changes
+    const channel = supabase
+      .channel(`campaign-${c.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "campaign_updates",
+          filter: `campaign_id=eq.${c.id}`,
+        },
+        () => router.invalidate()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "campaign_comments",
+          filter: `campaign_id=eq.${c.id}`,
+        },
+        () => router.invalidate()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "donations",
+          filter: `campaign_id=eq.${c.id}`,
+        },
+        () => router.invalidate()
+      )
+      .subscribe();
+
+    // Keep polling for on-chain disputes (could be replaced with The Graph indexer)
+    const disputeInterval = setInterval(fetchDisputes, 15000);
+
     return () => {
-      clearInterval(interval);
+      supabase.removeChannel(channel);
+      clearInterval(disputeInterval);
     };
-  }, [c.on_chain_campaign_id]);
+  }, [c.id, c.on_chain_campaign_id]);
 
   const c = data.campaign as unknown as Tables<"campaigns">;
   const cover = c.cover_image_url || fallbacks[0];

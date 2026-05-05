@@ -2,8 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
-import { fetchCampaigns } from "@/server/campaigns.functions";
-import { getUserStats } from "@/server/users.functions";
+import { fetchCampaigns } from "@/functions/campaigns.functions";
+import { getUserStats } from "@/functions/users.functions";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 import { formatUSD, shortAddr } from "@/lib/format";
 

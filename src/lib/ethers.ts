@@ -6,12 +6,12 @@ import { useWallets, type Wallet } from "@privy-io/react-auth";
  * Must be used inside a component (PrivyProvider must be mounted).
  */
 export function useEthersSigner() {
+  const { wallets } = useWallets();
+
   // Skip on server-side to avoid "useWallets called outside PrivyProvider" error
   if (typeof window === "undefined") {
     return { getSigner: async () => null, wallets: [] as Wallet[] };
   }
-
-  const { wallets } = useWallets();
 
   const getSigner = async (): Promise<ethers.Signer | null> => {
     const wallet = wallets[0];

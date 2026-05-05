@@ -13,7 +13,7 @@ import {
   uploadPartnerLogo,
   isCurrentUserAdmin,
   type AdminPartner,
-} from "@/server/partners.functions";
+} from "@/functions/partners.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

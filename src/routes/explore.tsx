@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { fetchCampaigns } from "@/server/campaigns.functions";
+import { fetchCampaigns } from "@/functions/campaigns.functions";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 
 export const Route = createFileRoute("/explore")({

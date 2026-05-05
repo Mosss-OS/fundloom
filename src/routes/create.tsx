@@ -5,7 +5,7 @@ import { Upload, X, Sparkles } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { useEthersSigner } from "@/lib/ethers";
 import { getContractInstance } from "@/integrations/contract";
-import { createCampaign, uploadCampaignCover } from "@/server/campaigns.functions";
+import { createCampaign, uploadCampaignCover } from "@/functions/campaigns.functions";
 import { AiCampaignOptimizer } from "@/components/AiCampaignOptimizer";
 import { formatUSD } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";

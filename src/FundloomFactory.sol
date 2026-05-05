@@ -12,27 +12,26 @@ interface IERC20 {
     function totalSupply() external view returns (uint256);
 }
 
-// Dispute Resolution
-enum DisputeType { WITHDRAWAL, MILESTONE_RELEASE }
-// Appeal status for disputes
-enum AppealStatus { None, Pending, Approved, Rejected }
-
-// Events
-event CampaignCreated(uint256 indexed campaignId, address indexed creator, uint256 goal, uint64 deadline);
-event MilestoneAdded(uint256 indexed campaignId, uint256 indexed milestoneId, string description, uint256 amount);
-event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount);
-event Withdrawn(uint256 indexed campaignId, address indexed creator, uint256 amount);
-event MilestoneReleased(uint256 indexed campaignId, uint256 indexed milestoneId, uint256 amount);
-event DisputeCreated(uint256 indexed disputeId, address indexed proposer, DisputeType disputeType);
-event DisputeVoted(uint256 indexed disputeId, address indexed voter, bool support);
-event DisputeExecuted(uint256 indexed disputeId);
-event DisputeAppealed(uint256 indexed disputeId, address indexed appellant);
-event AppealVoted(uint256 indexed disputeId, address indexed voter, bool support);
-event AppealExecuted(uint256 indexed disputeId, bool upheld); // true = upheld, false = rejected
-event AppealCancelled(uint256 indexed disputeId);
-event DisputeCancelled(uint256 indexed disputeId);
-
 contract FundloomFactory {
+    // Dispute Resolution
+    enum DisputeType { WITHDRAWAL, MILESTONE_RELEASE }
+    // Appeal status for disputes
+    enum AppealStatus { None, Pending, Approved, Rejected }
+
+    // Events
+    event CampaignCreated(uint256 indexed campaignId, address indexed creator, uint256 goal, uint64 deadline);
+    event MilestoneAdded(uint256 indexed campaignId, uint256 indexed milestoneId, string description, uint256 amount);
+    event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount);
+    event Withdrawn(uint256 indexed campaignId, address indexed creator, uint256 amount);
+    event MilestoneReleased(uint256 indexed campaignId, uint256 indexed milestoneId, uint256 amount);
+    event DisputeCreated(uint256 indexed disputeId, address indexed proposer, DisputeType disputeType);
+    event DisputeVoted(uint256 indexed disputeId, address indexed voter, bool support);
+    event DisputeExecuted(uint256 indexed disputeId);
+    event DisputeAppealed(uint256 indexed disputeId, address indexed appellant);
+    event AppealVoted(uint256 indexed disputeId, address indexed voter, bool support);
+    event AppealExecuted(uint256 indexed disputeId, bool upheld); // true = upheld, false = rejected
+    event AppealCancelled(uint256 indexed disputeId);
+    event DisputeCancelled(uint256 indexed disputeId);
     IERC20 public immutable USDC;
     address public daoToken; // Simple governance token for voting
     
@@ -415,33 +414,8 @@ contract FundloomFactory {
         emit DisputeCancelled(disputeId);
     }
 
-    /// @notice Get dispute details
-    function getDispute(uint256 disputeId) external view returns (
-        uint256 campaignId,
-        uint256 milestoneId,
-        DisputeType disputeType,
-        address proposer,
-        uint256 startTime,
-        uint256 endTime,
-        uint256 yesVotes,
-        uint256 noVotes,
-        bool executed,
-        bool cancelled
-    ) {
-        Dispute storage d = disputes[disputeId];
-        return (
-            d.campaignId,
-            d.milestoneId,
-            d.disputeType,
-            d.proposer,
-            d.startTime,
-            d.endTime,
-            d.yesVotes,
-            d.noVotes,
-            d.executed,
-            d.cancelled
-        );
-    }
+    /// @notice Get dispute details (individual getters below)
+    // Function removed due to stack too deep - use individual getters
 
     /// @notice Get campaign ID from dispute (helper for testing)
     function getCampaignIdFromDispute(uint256 disputeId) external view returns (uint256) {

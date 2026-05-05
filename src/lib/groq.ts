@@ -1,59 +1,38 @@
 import { z } from "zod";
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+// Call Supabase Edge Function instead of Groq directly (protects API key)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface GroqMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-export interface GroqResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
-
-/**
- * Call Groq API with a prompt
- * Uses Llama 3.3 70B for now - future: switch to Claude via API
- */
-export async function callGroq(
+async function callAIHelper(
+  type: string,
   messages: GroqMessage[],
-  options?: {
-    model?: string;
-    temperature?: number;
-    maxTokens?: number;
-  },
-): Promise<string> {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("GROQ_API_KEY not configured");
-  }
-
-  const response = await fetch(GROQ_API_URL, {
+  options?: { temperature?: number }
+): Promise<any> {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-helper`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
     },
     body: JSON.stringify({
-      model: options?.model || "llama-3.3-70b-versatile",
+      type,
       messages,
-      temperature: options?.temperature ?? 0.7,
-      max_tokens: options?.maxTokens ?? 1000,
+      options,
     }),
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new Error(`Groq API error: ${error?.error?.message || response.statusText}`);
+    throw new Error(`AI helper error: ${error?.error || response.statusText}`);
   }
 
-  const data: GroqResponse = await response.json();
-  return data.choices[0]?.message?.content || "";
+  return await response.json();
 }
 
 /**
@@ -91,16 +70,19 @@ Provide an improved title, improved description, 3-5 suggestions, and relevant t
     },
   ];
 
-  const response = await callGroq(messages, { temperature: 0.8 });
-
   try {
-    return JSON.parse(response);
-  } catch {
-    // Fallback parsing
+    const result = await callAIHelper("optimize", messages, { temperature: 0.8 });
+    return {
+      improvedTitle: result.improvedTitle || params.title,
+      improvedDescription: result.improvedDescription || params.description,
+      suggestions: result.suggestions || [],
+      tags: result.tags || [params.category],
+    };
+  } catch (error) {
     return {
       improvedTitle: params.title,
       improvedDescription: params.description,
-      suggestions: [response.slice(0, 200)],
+      suggestions: [error instanceof Error ? error.message : "Optimization failed"],
       tags: [params.category],
     };
   }
@@ -150,16 +132,20 @@ Rate the fraud risk (0-100) and explain your reasoning.`,
     },
   ];
 
-  const response = await callGroq(messages, { temperature: 0.3 });
-
   try {
-    return JSON.parse(response);
-  } catch {
+    const result = await callAIHelper("fraud", messages, { temperature: 0.3 });
+    return {
+      riskScore: result.riskScore || 50,
+      riskLevel: result.riskLevel || "medium",
+      flags: result.flags || [],
+      recommendation: result.recommendation || "Unable to fully analyze",
+    };
+  } catch (error) {
     return {
       riskScore: 50,
       riskLevel: "medium" as const,
-      flags: ["Unable to fully analyze"],
-      recommendation: response.slice(0, 200),
+      flags: [error instanceof Error ? error.message : "Analysis failed"],
+      recommendation: "Please try again later",
     };
   }
 }
@@ -190,7 +176,7 @@ Return JSON only with fields: matchScore (0-100), reasons (array), suggestedAmou
     {
       role: "user",
       content: `Match this campaign to a donor:
-
+      
 Campaign:
 - Title: ${params.campaignTitle}
 - Category: ${params.campaignCategory}
@@ -204,14 +190,18 @@ Provide a match score (0-100), reasons for matching, suggested donation amount, 
     },
   ];
 
-  const response = await callGroq(messages, { temperature: 0.5 });
-
   try {
-    return JSON.parse(response);
-  } catch {
+    const result = await callAIHelper("match", messages, { temperature: 0.5 });
+    return {
+      matchScore: result.matchScore || 50,
+      reasons: result.reasons || [],
+      suggestedAmount: result.suggestedAmount || 50,
+      similarCampaigns: result.similarCampaigns || [],
+    };
+  } catch (error) {
     return {
       matchScore: 50,
-      reasons: [response.slice(0, 200)],
+      reasons: [error instanceof Error ? error.message : "Matching failed"],
       suggestedAmount: 50,
       similarCampaigns: [],
     };

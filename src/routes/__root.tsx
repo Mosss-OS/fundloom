@@ -31,7 +31,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=5" },
       { title: "Fundloom — The Best Crowdfunding Platform | Raise Funds on Blockchain" },
       {
         name: "description",
@@ -42,14 +42,14 @@ export const Route = createRootRoute({
       {
         name: "keywords",
         content:
-          "crowdfunding, blockchain, USDC, Base, GoFundMe alternative, transparent fundraising, milestone escrow, AI campaign optimizer, donate, raise money online",
+          "crowdfunding, blockchain, USDC, Base, GoFundMe alternative, transparent fundraising, milestone escrow, AI campaign optimizer, donate, raise money online, charitable giving, crypto donations",
       },
       {
         name: "robots",
         content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
       },
 
-      // Open Graph (Facebook, LinkedIn)
+      // Open Graph (Facebook, LinkedIn) - Issue #385
       {
         property: "og:title",
         content: "Fundloom — Better than GoFundMe | Blockchain Crowdfunding",
@@ -69,8 +69,9 @@ export const Route = createRootRoute({
       { property: "og:image:width", content: "1254" },
       { property: "og:image:height", content: "1254" },
       { property: "og:site_name", content: "Fundloom" },
+      { property: "og:locale", content: "en_US" },
 
-      // Twitter Card
+      // Twitter Card - Issue #386
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Fundloom — The GoFundMe Alternative on Blockchain" },
       {
@@ -86,7 +87,7 @@ export const Route = createRootRoute({
       { name: "twitter:site", content: "@fundloom" },
       { name: "twitter:creator", content: "@fundloom" },
 
-      // Additional SEO
+      // Additional SEO - Issue #384
       { name: "application-name", content: "Fundloom" },
       {
         name: "msapplication-TileImage",
@@ -94,6 +95,8 @@ export const Route = createRootRoute({
           "https://res.cloudinary.com/dv0tt80vn/image/upload/v1777382546/fundloom_Logo_nlovd8.png",
       },
       { name: "theme-color", content: "#F5F2ED" },
+      { httpEquiv: "Content-Type", content: "text/html; charset=utf-8" },
+      { name: "language", content: "en-US" },
     ],
     links: [
       {
@@ -101,6 +104,12 @@ export const Route = createRootRoute({
         href: "https://res.cloudinary.com/dv0tt80vn/image/upload/v1777382546/fundloom_Logo_nlovd8.png",
         type: "image/png",
         sizes: "32x32",
+      },
+      {
+        rel: "icon",
+        href: "https://res.cloudinary.com/dv0tt80vn/image/upload/v1777382546/fundloom_Logo_nlovd8.png",
+        type: "image/png",
+        sizes: "16x16",
       },
       { rel: "stylesheet", href: appCss },
       { rel: "canonical", href: "https://fundloom.vercel.app" },
@@ -116,6 +125,8 @@ export const Route = createRootRoute({
       },
       { rel: "canonical", href: "https://fundloom.vercel.app" },
       { rel: "sitemap", href: "https://fundloom.vercel.app/sitemap.xml" },
+      { rel: "alternate", hrefLang: "en", href: "https://fundloom.vercel.app" },
+      { rel: "alternate", hrefLang: "x-default", href: "https://fundloom.vercel.app" },
     ],
   }),
   shellComponent: RootShell,

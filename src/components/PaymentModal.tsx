@@ -5,6 +5,21 @@ import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { useEthersSigner } from "@/lib/ethers";
 import { getContractInstance } from "@/integrations/contract";
 import { formatUSD, shortAddr } from "@/lib/format";
+import { supabase } from "@/integrations/supabase/client";
+
+async function createFlutterwaveCheckout(params: {
+  campaignId: string;
+  campaignTitle: string;
+  amount: number;
+  userId: string;
+  email?: string;
+}) {
+  const { data, error } = await supabase.functions.invoke("flutterwave-checkout", {
+    body: params,
+  });
+  if (error) throw new Error(error.message);
+  return data as { txRef: string; link: string };
+}
 
 type Props = {
   open: boolean;
@@ -67,16 +82,18 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
           },
         });
       } else {
-        // Fiat payment - still in demo mode
-        await fundCampaign({
-          data: {
-            campaignId,
-            donorWallet: user.wallet_address ?? "0x0",
-            donorUserId: user.id,
-            amount: value,
-            paymentMethod: "fiat",
-          },
+        // Fiat payment via Flutterwave
+        const { link } = await createFlutterwaveCheckout({
+          campaignId,
+          campaignTitle,
+          amount: value,
+          userId: user.id,
+          email: user.email ?? undefined,
         });
+        
+        // Redirect to Flutterwave payment page
+        window.location.href = link;
+        return;
       }
       // Subtle delay for the success animation to feel earned
       await new Promise((r) => setTimeout(r, 600));
@@ -125,7 +142,7 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                           method === m ? "bg-ink text-canvas" : "bg-paper text-ink hover:bg-ink/5"
                         }`}
                       >
-                        {m === "crypto" ? "USDC · Base" : "Card / Fiat"}
+                        {m === "crypto" ? "USDC · Base" : "Card / Mobile"}
                       </button>
                     ))}
                   </div>
@@ -167,8 +184,7 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
 
                 {method === "fiat" && (
                   <p className="mt-4 rounded-2xl bg-paper p-3 text-xs leading-relaxed text-ink-soft hairline">
-                    Fiat payments via Flutterwave are coming soon. We'll record this contribution in
-                    demo mode for now.
+                    Pay securely with card, USSD, or mobile money via Flutterwave. You'll be redirected to complete payment.
                   </p>
                 )}
 

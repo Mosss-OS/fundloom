@@ -77,9 +77,12 @@ export const createSubscription = createServerFn({ method: "POST" })
   });
 
 // Function to get active subscriptions for a campaign
+const GetCampaignSubscriptionsSchema = z.object({
+  campaignId: z.string().uuid(),
+});
+
 export const getCampaignSubscriptions = createServerFn({ method: "GET" })
-  .inputValidator((d: z.object({ campaignId: z.string().uuid() })) => 
-    z.object({ campaignId: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => GetCampaignSubscriptionsSchema.parse(d))
   .handler(async ({ data }) => {
     const { data: subscriptions, error } = await supabaseAdmin
       .from("subscriptions")
@@ -109,9 +112,12 @@ export const getCampaignSubscriptions = createServerFn({ method: "GET" })
   });
 
 // Function to cancel a subscription
+const CancelSubscriptionSchema = z.object({
+  subscriptionId: z.string().uuid(),
+});
+
 export const cancelSubscription = createServerFn({ method: "POST" })
-  .inputValidator((d: z.object({ subscriptionId: z.string().uuid() })) => 
-    z.object({ subscriptionId: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => CancelSubscriptionSchema.parse(d))
   .handler(async ({ data }) => {
     const { data: subscription, error } = await supabaseAdmin
       .from("subscriptions")

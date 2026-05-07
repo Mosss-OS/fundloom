@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
+import { createFileRoute, notFound, useRouter, useSearch } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ExternalLink, MessageCircle, Megaphone, Trash2 } from "lucide-react";
@@ -111,6 +111,19 @@ function CampaignDetail() {
     cancelled: boolean;
   }>>(null);
   const [disputeLoading, setDisputeLoading] = useState(false);
+  const search = useSearch({ from: "/c/$id" });
+  const [paymentResult, setPaymentResult] = useState<"success" | "cancelled" | null>(null);
+
+  useEffect(() => {
+    if (search.payment === "success") {
+      setPaymentResult("success");
+      // Clear the URL param
+      router.navigate({ to: "/c/$id", params: { id: c.id }, search: {} });
+    } else if (search.payment === "cancelled") {
+      setPaymentResult("cancelled");
+      router.navigate({ to: "/c/$id", params: { id: c.id }, search: {} });
+    }
+  }, [search, c.id, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -360,6 +373,25 @@ function CampaignDetail() {
       >
         <img src={cover} alt={c.title} className="aspect-[5/2] w-full object-cover" />
       </motion.div>
+
+      {paymentResult === "success" && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 rounded-2xl bg-forest/10 px-5 py-4 text-sm text-forest"
+        >
+          Payment successful! Your donation has been recorded.
+        </motion.div>
+      )}
+      {paymentResult === "cancelled" && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 rounded-2xl bg-paper px-5 py-4 text-sm text-ink-soft hairline"
+        >
+          Payment was cancelled. You can try again if you'd like to contribute.
+        </motion.div>
+      )}
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[1.4fr_1fr]">
         {/* Left: story / tabs */}

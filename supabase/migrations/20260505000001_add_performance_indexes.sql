@@ -40,33 +40,33 @@ CREATE INDEX IF NOT EXISTS idx_campaign_comments_created_at ON public.campaign_c
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON public.users(wallet_address);
 
--- API keys indexes (already created in migration, but ensuring)
+-- API keys indexes
 CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON public.api_keys(user_id);
 CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON public.api_keys(key_hash);
 
--- Subscriptions indexes
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_campaign_id ON public.subscriptions(campaign_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(status);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_next_billing_date ON public.subscriptions(next_billing_date);
+-- Subscriptions indexes (check if table exists)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'subscriptions') THEN
+        CREATE INDEX IF NOT EXISTS idx_subscriptions_donor_user_id ON public.subscriptions(donor_user_id);
+    END IF;
+END
+$$;
 
--- Milestones indexes
-CREATE INDEX IF NOT EXISTS idx_milestones_campaign_id ON public.milestones(campaign_id);
-CREATE INDEX IF NOT EXISTS idx_milestones_created_at ON public.milestones(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_campaign_id_idx ON public.subscriptions(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status_idx ON public.subscriptions(status);
 
--- Disputes indexes
-CREATE INDEX IF NOT EXISTS idx_disputes_campaign_id ON public.disputes(campaign_id);
-CREATE INDEX IF NOT EXISTS idx_disputes_raiser_user_id ON public.disputes(raiser_user_id);
-CREATE INDEX IF NOT EXISTS idx_disputes_status ON public.disputes(status);
+-- Transactions table indexes
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON public.transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_campaign_id ON public.transactions(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON public.transactions(type);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON public.transactions(status);
+CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON public.transactions(created_at DESC);
 
 -- Partial indexes for active records (smaller, faster)
 CREATE INDEX IF NOT EXISTS idx_campaigns_active 
   ON public.campaigns(created_at DESC) 
   WHERE status = 'active';
-
-CREATE INDEX IF NOT EXISTS idx_donations_recent 
-  ON public.donations(campaign_id, created_at DESC) 
-  WHERE created_at > now() - interval '30 days';
 
 -- Analyze tables to update statistics
 ANALYZE public.campaigns;
@@ -74,4 +74,3 @@ ANALYZE public.donations;
 ANALYZE public.campaign_updates;
 ANALYZE public.campaign_comments;
 ANALYZE public.users;
-ANALYZE public.subscriptions;

@@ -75,30 +75,32 @@ function Index() {
                <img
                  src={handsImg}
                  alt="Hands caring"
-                 className="h-full w-full object-cover object-left opacity-90"
+                 className="h-full w-full object-cover object-left"
                />
-               {/* Fanciful edge with decorative SVG */}
-               <div className="absolute left-0 top-0 bottom-0 w-48 flex items-stretch">
-                 <svg
-                   className="h-full w-full"
-                   preserveAspectRatio="none"
-                   viewBox="0 0 100 800"
-                   aria-hidden="true"
-                 >
-                   {/* Wavy organic edge */}
-                   <path
-                     d="M0,0 L15,0 Q25,40 18,80 Q28,120 15,160 Q8,200 20,240 Q12,280 22,320 Q15,360 18,400 Q25,440 15,480 Q8,520 20,560 Q12,600 18,640 Q28,680 15,720 Q22,760 15,800 L0,800 Z"
-                     fill="currentColor"
-                     className="text-canvas"
-                   />
-                   {/* Decorative blobs along edge */}
-                   <circle cx="30" cy="100" r="8" fill="#F4C26B" opacity="0.6" />
-                   <circle cx="25" cy="300" r="6" fill="#CDEBD6" opacity="0.5" />
-                   <circle cx="35" cy="500" r="10" fill="#9CA8FF" opacity="0.4" />
-                   <circle cx="28" cy="700" r="7" fill="#F0E6C8" opacity="0.5" />
-                 </svg>
+               {/* Decorative theme elements over image */}
+               <div className="absolute inset-0">
+                 {/* Top-left sparkle */}
+                 <div className="absolute left-8 top-20">
+                   <Sparkles className="h-8 w-8 text-forest/70" />
+                 </div>
+                 {/* Center-right heart */}
+                 <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                   <HeartHandshake className="h-16 w-16 text-forest/60" />
+                 </div>
+                 {/* Bottom-right circle */}
+                 <div className="absolute bottom-24 right-16">
+                   <div className="h-20 w-20 rounded-full bg-forest/20 backdrop-blur-sm" />
+                 </div>
+                 {/* Floating dots */}
+                 <div className="absolute left-16 top-1/3">
+                   <Dot className="h-4 w-4 text-forest/50" />
+                 </div>
+                 <div className="absolute right-24 top-1/4">
+                   <Dot className="h-3 w-3 text-canvas/40" />
+                 </div>
+                 {/* Gradient overlay to blend with text */}
+                 <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/40 to-transparent" />
                </div>
-               <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/60 to-transparent" />
              </div>
            </div>
 

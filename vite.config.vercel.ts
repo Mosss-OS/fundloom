@@ -12,9 +12,11 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   build: {
-    outDir: "dist",
+    outDir: "dist/client",
     rollupOptions: {
-      input: "virtual:tanstack-start-entry",
+      input: {
+        main: "index.html",
+      },
     },
   },
 });

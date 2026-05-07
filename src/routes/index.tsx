@@ -71,11 +71,35 @@ function Index() {
          <div className="mx-auto max-w-6xl px-5 pb-28 pt-20 sm:px-8 sm:pt-28">
            {/* Right side image - desktop only */}
            <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none">
-             <img
-               src={handsImg}
-               alt="Hands caring"
-               className="h-full w-full object-cover object-left opacity-90"
-             />
+             <div className="relative h-full w-full">
+               <img
+                 src={handsImg}
+                 alt="Hands caring"
+                 className="h-full w-full object-cover object-left opacity-90"
+               />
+               {/* Fanciful edge with decorative SVG */}
+               <div className="absolute left-0 top-0 bottom-0 w-48 flex items-stretch">
+                 <svg
+                   className="h-full w-full"
+                   preserveAspectRatio="none"
+                   viewBox="0 0 100 800"
+                   aria-hidden="true"
+                 >
+                   {/* Wavy organic edge */}
+                   <path
+                     d="M0,0 L15,0 Q25,40 18,80 Q28,120 15,160 Q8,200 20,240 Q12,280 22,320 Q15,360 18,400 Q25,440 15,480 Q8,520 20,560 Q12,600 18,640 Q28,680 15,720 Q22,760 15,800 L0,800 Z"
+                     fill="currentColor"
+                     className="text-canvas"
+                   />
+                   {/* Decorative blobs along edge */}
+                   <circle cx="30" cy="100" r="8" fill="#F4C26B" opacity="0.6" />
+                   <circle cx="25" cy="300" r="6" fill="#CDEBD6" opacity="0.5" />
+                   <circle cx="35" cy="500" r="10" fill="#9CA8FF" opacity="0.4" />
+                   <circle cx="28" cy="700" r="7" fill="#F0E6C8" opacity="0.5" />
+                 </svg>
+               </div>
+               <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/60 to-transparent" />
+             </div>
            </div>
 
            <div

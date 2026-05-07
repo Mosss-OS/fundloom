@@ -91,10 +91,9 @@ export function Underline({ className = "" }: { className?: string }) {
   );
 }
 
-/** Floating decoration — subtle bobbing motion. */
+/** Floating decoration — subtle bobbing motion using plain CSS animation. */
 export function Floater({
   children,
-  delay = 0,
   className = "",
 }: {
   children: React.ReactNode;
@@ -102,17 +101,14 @@ export function Floater({
   className?: string;
 }) {
   return (
-    <motion.div
+    <div
       aria-hidden
       className={`pointer-events-none absolute ${className}`}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: [0, -10, 0] }}
-      transition={{
-        opacity: { duration: 0.8, delay },
-        y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay },
+      style={{
+        animation: "floaterBob 6s ease-in-out infinite",
       }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

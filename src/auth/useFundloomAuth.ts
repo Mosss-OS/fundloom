@@ -11,22 +11,31 @@ export type FundloomUser = {
   display_name: string | null;
 };
 
+const PRIVY_CONFIGURED =
+  typeof import.meta.env.VITE_PRIVY_APP_ID === "string" &&
+  import.meta.env.VITE_PRIVY_APP_ID !== "" &&
+  import.meta.env.VITE_PRIVY_APP_ID !== "REPLACE_WITH_YOUR_PRIVY_APP_ID";
+
 /**
  * Unifies Privy auth + Supabase user record.
  * If Privy is not configured, falls back to a localStorage-only demo session
  * so the UI is fully testable end-to-end.
  */
 export function useFundloomAuth() {
-  const privy = useSafePrivy();
-  const wallets = useSafeWallets();
+  // Always call hooks in the same order (Rules of Hooks)
+  const privy = usePrivy();
+  const { wallets } = useWallets();
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef<string | null>(null);
 
-  // Demo fallback session
+  const isAvailable = PRIVY_CONFIGURED;
+
+  // Demo fallback session (when Privy not configured)
   useEffect(() => {
-    if (privy.available) return;
-    const stored = typeof window !== "undefined" ? localStorage.getItem("fl.demoUser") : null;
+    if (isAvailable) return;
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("fl.demoUser");
     if (stored) {
       try {
         setUser(JSON.parse(stored));
@@ -35,11 +44,12 @@ export function useFundloomAuth() {
       }
     }
     setLoading(false);
-  }, [privy.available]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAvailable]);
 
   // Privy session → sync to Supabase
   useEffect(() => {
-    if (!privy.available) return;
+    if (!isAvailable) return;
     if (!privy.ready) return;
     if (!privy.authenticated || !privy.user) {
       setUser(null);
@@ -60,12 +70,11 @@ export function useFundloomAuth() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [privy.available, privy.ready, privy.authenticated, privy.user, wallets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAvailable, privy.ready, privy.authenticated, privy.user, wallets]);
 
   const loginEmail = async (email: string) => {
-    if (privy.available) {
-      // Privy's `login()` opens its modal; for inline email flow users
-      // would call sendCode/loginWithCode. For MVP we just open the modal.
+    if (isAvailable) {
       privy.login?.();
       return;
     }
@@ -80,7 +89,7 @@ export function useFundloomAuth() {
   };
 
   const logout = async () => {
-    if (privy.available) {
+    if (isAvailable) {
       await privy.logout?.();
     }
     if (typeof window !== "undefined") localStorage.removeItem("fl.demoUser");
@@ -95,35 +104,9 @@ export function useFundloomAuth() {
       isAuthenticated: !!user,
       loginEmail,
       logout,
-      privyAvailable: privy.available,
+      privyAvailable: isAvailable,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, loading, privy.available],
+    [user, loading, isAvailable],
   );
-}
-
-/** Calls usePrivy only when the provider is mounted; otherwise returns a stub. */
-function useSafePrivy() {
-  const appId = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
-  const available = !!appId && appId !== "REPLACE_WITH_YOUR_PRIVY_APP_ID";
-  if (!available) {
-    return { available: false as const, ready: true, authenticated: false, user: null };
-  }
-  // Hooks rules: this branch is stable across renders for a given build env.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const p = usePrivy();
-  return { available: true as const, ...p };
-}
-function useSafeWallets() {
-  // Skip on server-side to avoid "useWallets called outside PrivyProvider" error
-  if (typeof window === "undefined") {
-    return [] as { address: string }[];
-  }
-
-  const appId = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
-  const available = !!appId && appId !== "REPLACE_WITH_YOUR_PRIVY_APP_ID";
-  if (!available) return [] as { address: string }[];
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { wallets } = useWallets();
-  return wallets ?? [];
 }

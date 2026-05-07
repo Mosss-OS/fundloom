@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createBrowserRoute, Link.useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Upload, X, Sparkles } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -9,9 +9,9 @@ import { AiCampaignOptimizer } from "@/components/AiCampaignOptimizer";
 import { formatUSD } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 
-export const Route = createFileRoute("/create")({
+export const Route = createBrowserRoute("/create")({
   head: () => ({ meta: [{ title: "New campaign — Fundloom" }] }),
-  component: CreatePage,
+  element: CreatePage,
 });
 
 const STEPS = ["Story", "Goal", "Cover", "Milestones", "Review"] as const;
@@ -32,7 +32,7 @@ const CATEGORIES: { value: string; label: string }[] = [
 function CreatePage() {
   const { user, loading } = useFundloomAuth();
   const { getSigner } = useEthersSigner();
-  const navigate = useNavigate();
+  const navigate = Link.useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0);

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createBrowserRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import {
   Sparkles,
@@ -22,7 +22,7 @@ import sample3 from "@/assets/sample-campaign-3.jpg";
 import { fetchActivePartners, type Partner } from "@/functions/partners.functions";
 import { SmileMoon, Sunburst, Blob, Dot, Underline, Floater } from "@/components/DevfolioDecor";
 
-export const Route = createFileRoute("/")({
+export const Route = createBrowserRoute("/")({
   loader: () => fetchActivePartners(),
   staleTime: 60_000,
   errorComponent: ({ error }) => (
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/")({
       <p className="mt-3 text-ink-soft">{error.message}</p>
     </main>
   ),
-  component: Index,
+  element: Index,
 });
 
 function Index() {

@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, useRouter, useSearch } from "@tanstack/react-router";
+import { createBrowserRoute, notFound, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ExternalLink, MessageCircle, Megaphone, Trash2 } from "lucide-react";
 import { fetchCampaign } from "@/functions/campaigns.functions";
@@ -57,7 +57,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createFileRoute("/c/$id")({
+export const Route = createBrowserRoute("/c/$id")({
   loader: async ({ params }) => {
     const result = await fetchCampaign({ data: { id: params.id } });
     if (!result) throw notFound();
@@ -81,7 +81,7 @@ export const Route = createFileRoute("/c/$id")({
     </main>
   ),
   errorComponent: ErrorComponent,
-  component: CampaignDetail,
+  element: CampaignDetail,
 });
 
 type Tab = "story" | "milestones" | "updates" | "comments" | "backers" | "disputes";

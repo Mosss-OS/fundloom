@@ -1,0 +1,10 @@
+export enum MilestoneStatus {
+  Pending = 0,
+  Approved = 1,
+  Released = 2,
+}
+
+export enum DisputeType {
+  WITHDRAWAL = 0,
+  MILESTONE_RELEASE = 1,
+}

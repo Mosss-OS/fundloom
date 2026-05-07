@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createBrowserRoute, Link, Link.useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { fetchCampaigns } from "@/functions/campaigns.functions";
@@ -6,16 +6,16 @@ import { getUserStats } from "@/functions/users.functions";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 import { formatUSD, shortAddr } from "@/lib/format";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createBrowserRoute("/dashboard")({
   head: () => ({
     meta: [{ title: "Dashboard — Fundloom" }],
   }),
-  component: Dashboard,
+  element: Dashboard,
 });
 
 function Dashboard() {
   const { user, loading } = useFundloomAuth();
-  const navigate = useNavigate();
+  const navigate = Link.useNavigate();
   const [campaigns, setCampaigns] = useState<CampaignCardData[]>([]);
   const [stats, setStats] = useState<{
     totalRaised: number;

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createBrowserRoute, Link.useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
@@ -35,19 +35,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/admin/partners")({
+export const Route = createBrowserRoute("/admin/partners")({
   head: () => ({
     meta: [
       { title: "Partners — Admin · Fundloom" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: AdminPartnersPage,
+  element: AdminPartnersPage,
 });
 
 function AdminPartnersPage() {
   const { user, loading } = useFundloomAuth();
-  const navigate = useNavigate();
+  const navigate = Link.useNavigate();
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [partners, setPartners] = useState<AdminPartner[]>([]);

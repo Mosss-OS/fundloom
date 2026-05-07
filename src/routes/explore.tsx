@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createBrowserRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { fetchCampaigns } from "@/functions/campaigns.functions";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 
-export const Route = createFileRoute("/explore")({
+export const Route = createBrowserRoute("/explore")({
   head: () => ({
     meta: [
       { title: "Explore campaigns — Fundloom" },
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/explore")({
     ],
   }),
   loader: () => fetchCampaigns({ data: { limit: 60 } }),
-  component: Explore,
+  element: Explore,
 });
 
 const CATEGORIES = [

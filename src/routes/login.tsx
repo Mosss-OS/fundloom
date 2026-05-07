@@ -1,20 +1,20 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Link, createBrowserRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 
-export const Route = createFileRoute("/login")({
+export const Route = createBrowserRoute("/login")({
   head: () => ({
     meta: [
       { title: "Sign in — Fundloom" },
       { name: "description", content: "Sign in to Fundloom with your email." },
     ],
   }),
-  component: Login,
+  element: Login,
 });
 
 function Login() {
   const { user, loginEmail, privyAvailable } = useFundloomAuth();
-  const navigate = useNavigate();
+  const navigate = Link.Link.useNavigate();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

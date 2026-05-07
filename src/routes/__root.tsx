@@ -130,7 +130,7 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootShell,
-  component: RootComponent,
+  element: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
 

@@ -1,8 +1,6 @@
 {
-  "framework": "vite",
-  "buildCommand": "NODE_OPTIONS=--max-old-space-size=4096 npm run build",
-  "outputDirectory": "dist/client",
-  "installCommand": "npm install"
-}
-  ]
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": null
 }

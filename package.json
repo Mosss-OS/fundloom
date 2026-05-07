@@ -42,7 +42,7 @@
   ],
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

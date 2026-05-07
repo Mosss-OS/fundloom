@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Upload, X, Sparkles } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -162,15 +161,10 @@ function CreatePage() {
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -16 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {step === 0 && (
+      <div
+        key={step}
+      >
+        {step === 0 && (
             <div className="space-y-6">
               <div>
                 <h1 className="font-display text-4xl text-ink">Tell the story.</h1>
@@ -332,38 +326,7 @@ function CreatePage() {
                 <Row k="Payout" v={payout === "crypto" ? "USDC (Base)" : "Fiat off-ramp"} />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="mt-10 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-          className="text-sm text-ink-soft transition hover:text-ink disabled:opacity-30"
-        >
-          ← Back
-        </button>
-        {step < STEPS.length - 1 ? (
-          <button
-            type="button"
-            onClick={() => canNext() && setStep((s) => s + 1)}
-            disabled={!canNext()}
-            className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:bg-ink/90 disabled:opacity-40"
-          >
-            Continue →
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={submit}
-            disabled={submitting}
-            className="rounded-full bg-forest px-6 py-3 text-sm font-medium text-canvas transition hover:bg-forest/90 disabled:opacity-60"
-          >
-            {submitting ? "Launching…" : "Launch campaign"}
-          </button>
+      </div>
         )}
       </div>
     </main>

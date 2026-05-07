@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Heart, RefreshCw, Target, DollarSign } from "lucide-react";
 import { matchDonors } from "@/lib/groq";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -72,14 +71,8 @@ export function SmartDonorMatching({
 
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
-      <AnimatePresence>
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mt-6 space-y-4"
-          >
+      {result && (
+          <div className="mt-6 space-y-4">
             {/* Match Score */}
             <div className="rounded-xl bg-white/80 p-4">
               <div className="flex items-center justify-between">
@@ -92,11 +85,9 @@ export function SmartDonorMatching({
                 </span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${result.matchScore}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full rounded-full bg-gradient-to-r from-pink-500 to-purple-500"
+                <div
+                  style={{ width: `${result.matchScore}%` }}
+                  className="h-full rounded-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-1000"
                 />
               </div>
             </div>
@@ -149,9 +140,8 @@ export function SmartDonorMatching({
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {!result && !loading && (
         <p className="mt-3 text-xs text-ink-soft">

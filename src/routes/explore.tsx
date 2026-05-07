@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { fetchCampaigns } from "@/functions/campaigns.functions";
@@ -59,18 +58,13 @@ function Explore() {
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
-      <motion.header
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="mb-12 max-w-2xl"
-      >
+      <header className="mb-12 max-w-2xl">
         <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">Open campaigns</span>
         <h1 className="mt-3 font-display text-4xl text-ink sm:text-5xl">Worth backing.</h1>
         <p className="mt-3 text-ink-soft">
           Each campaign is on-chain. Each contribution leaves a public mark.
         </p>
-      </motion.header>
+      </header>
 
       {campaigns.length > 0 && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

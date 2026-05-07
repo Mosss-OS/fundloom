@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Plus, Check, Lock, Unlock } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -116,11 +115,7 @@ export function MilestoneManager({
       </div>
 
       {showAddForm && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-paper p-5 hairline space-y-3"
-        >
+        <div className="rounded-2xl bg-paper p-5 hairline space-y-3">
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -154,7 +149,7 @@ export function MilestoneManager({
               {loading ? "Adding..." : "Add Milestone"}
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
 
       <MilestoneList
@@ -239,10 +234,8 @@ function MilestoneList({
   return (
     <div className="space-y-2">
       {milestones.map((m) => (
-        <motion.div
+        <div
           key={m.id}
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl bg-paper p-4 hairline"
         >
           <div className="flex items-center justify-between gap-4">
@@ -279,7 +272,7 @@ function MilestoneList({
               {m.status === 2 && <Lock className="size-3 text-green-600" />}
             </div>
           </div>
-        </motion.div>
+        </div>
       ))}
     </div>
   );

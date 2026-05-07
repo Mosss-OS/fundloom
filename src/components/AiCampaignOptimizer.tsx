@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lightbulb, Tag, RefreshCw } from "lucide-react";
 import { optimizeCampaign } from "@/lib/groq";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -88,14 +87,8 @@ export function AiCampaignOptimizer({
 
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
-      <AnimatePresence>
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mt-6 space-y-4"
-          >
+      {result && (
+          <div className="mt-6 space-y-4">
             {/* Improved Title */}
             <div>
               <div className="text-xs uppercase tracking-[0.18em] text-ink-soft">
@@ -158,9 +151,8 @@ export function AiCampaignOptimizer({
             >
               {applied ? "Applied!" : "Apply Suggestions"}
             </button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {!result && !loading && (
         <p className="mt-3 text-xs text-ink-soft">

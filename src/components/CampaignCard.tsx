@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { formatUSD, daysLeft, progress } from "@/lib/format";
 
 import sample1 from "@/assets/sample-campaign-1.jpg";
@@ -29,12 +28,7 @@ export function CampaignCard({
   const pct = progress(campaign.amount_raised, campaign.goal_amount);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div>
       <Link
         to="/c/$id"
         params={{ id: campaign.id }}
@@ -59,12 +53,9 @@ export function CampaignCard({
 
           <div className="mt-5">
             <div className="h-1 w-full overflow-hidden rounded-full bg-line">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: `${pct}%` }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="h-full rounded-full bg-forest"
+              <div
+                style={{ width: `${pct}%` }}
+                className="h-full rounded-full bg-forest transition-all duration-800"
               />
             </div>
             <div className="mt-2 flex items-baseline justify-between text-sm">
@@ -76,6 +67,6 @@ export function CampaignCard({
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

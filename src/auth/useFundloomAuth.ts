@@ -22,14 +22,18 @@ const PRIVY_CONFIGURED =
  * so the UI is fully testable end-to-end.
  */
 export function useFundloomAuth() {
-  // Always call hooks in the same order (Rules of Hooks)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  
+  // Only call hooks on client side when PrivyProvider is available
   const privy = usePrivy();
   const { wallets } = useWallets();
+  
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef<string | null>(null);
 
-  const isAvailable = PRIVY_CONFIGURED;
+  const isAvailable = PRIVY_CONFIGURED && mounted && typeof window !== "undefined";
 
   // Demo fallback session (when Privy not configured)
   useEffect(() => {

@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { fetchCampaigns } from "@/functions/campaigns.functions";
@@ -53,17 +52,12 @@ function Dashboard() {
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
-      <motion.header
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="mb-10"
-      >
+      <header className="mb-10">
         <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">Welcome back</span>
         <h1 className="mt-2 font-display text-4xl text-ink sm:text-5xl">
           {user.email.split("@")[0]}.
         </h1>
-      </motion.header>
+      </header>
 
       {/* Balance + stat cards */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -142,10 +136,7 @@ function BigStat({
   accent?: boolean;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    <div
       className={`rounded-3xl p-7 hairline ${
         accent ? "ink-grad text-canvas" : "bg-paper text-ink"
       }`}
@@ -159,6 +150,6 @@ function BigStat({
       {hint && (
         <div className={`mt-2 text-xs ${accent ? "text-canvas/60" : "text-ink-soft"}`}>{hint}</div>
       )}
-    </motion.div>
+    </div>
   );
 }

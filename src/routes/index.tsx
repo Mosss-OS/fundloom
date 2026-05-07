@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import {
   Sparkles,
   Wallet,
@@ -69,10 +68,7 @@ function Index() {
         </Floater>
 
         <div className="mx-auto max-w-6xl px-5 pb-28 pt-20 sm:px-8 sm:pt-28">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          <div
             className="max-w-2xl"
           >
             <span className="inline-flex items-center gap-2 rounded-full bg-paper/70 px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft hairline">
@@ -106,7 +102,7 @@ function Index() {
                 Explore campaigns
               </Link>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -130,18 +126,14 @@ function Index() {
               d: "Receive funds to your wallet, or off-ramp to fiat when you're ready.",
             },
           ].map((p, i) => (
-            <motion.div
+            <div
               key={p.k}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
               className="bg-canvas p-8 sm:p-10"
             >
               <div className="font-display text-sm text-ink-soft">{p.k}</div>
               <h3 className="mt-4 font-display text-2xl text-ink">{p.t}</h3>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">{p.d}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
@@ -177,17 +169,13 @@ function Index() {
               { v: "12,400+", l: "contributors" },
               { v: "320+", l: "campaigns funded" },
             ].map((s, i) => (
-              <motion.div
+              <div
                 key={s.l}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
                 className="bg-canvas px-8 py-12 sm:px-10 sm:py-16"
               >
                 <div className="font-display text-5xl text-ink sm:text-6xl">{s.v}</div>
                 <div className="mt-3 text-sm uppercase tracking-[0.18em] text-ink-soft">{s.l}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -220,42 +208,38 @@ function Index() {
         </div>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              img: sample1,
-              title: "A school garden in Nairobi",
-              raised: 8420,
-              goal: 12000,
-              backers: 214,
-              tag: "Education",
-            },
-            {
-              img: sample2,
-              title: "Open-source climate dashboards",
-              raised: 23100,
-              goal: 50000,
-              backers: 612,
-              tag: "Climate",
-            },
-            {
-              img: sample3,
-              title: "Hand-bound poetry, vol. III",
-              raised: 4800,
-              goal: 6000,
-              backers: 187,
-              tag: "Arts",
-            },
-          ].map((c, i) => {
-            const pct = Math.min(100, Math.round((c.raised / c.goal) * 100));
-            return (
-              <motion.article
-                key={c.title}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="group overflow-hidden rounded-3xl bg-paper hairline transition hover:shadow-[var(--shadow-lift)]"
-              >
+            {[
+              {
+                img: sample1,
+                title: "A school garden in Nairobi",
+                raised: 8420,
+                goal: 12000,
+                backers: 214,
+                tag: "Education",
+              },
+              {
+                img: sample2,
+                title: "Open-source climate dashboards",
+                raised: 23100,
+                goal: 50000,
+                backers: 612,
+                tag: "Climate",
+              },
+              {
+                img: sample3,
+                title: "Hand-bound poetry, vol. III",
+                raised: 4800,
+                goal: 6000,
+                backers: 187,
+                tag: "Arts",
+              },
+            ].map((c, i) => {
+              const pct = Math.min(100, Math.round((c.raised / c.goal) * 100));
+              return (
+                <article
+                  key={c.title}
+                  className="group overflow-hidden rounded-3xl bg-paper hairline transition hover:shadow-[var(--shadow-lift)]"
+                >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
                     src={c.img}
@@ -279,7 +263,7 @@ function Index() {
                     <span>{c.backers} backers</span>
                   </div>
                 </div>
-              </motion.article>
+              </article>
             );
           })}
         </div>
@@ -320,15 +304,11 @@ function Index() {
                 icon: <HeartHandshake className="size-5" />,
                 k: "Step 03",
                 t: "Receive & withdraw",
-                d: "Funds settle in USDC instantly. Off-ramp to fiat when you’re ready.",
+                d: "Funds settle in USDC instantly. Off-ramp to fiat when you're ready.",
               },
             ].map((s, i) => (
-              <motion.div
+              <div
                 key={s.k}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="flex size-11 items-center justify-center rounded-full border border-canvas/15 text-canvas">
                   {s.icon}
@@ -336,7 +316,7 @@ function Index() {
                 <div className="mt-6 text-xs uppercase tracking-[0.2em] text-canvas/50">{s.k}</div>
                 <h3 className="mt-2 font-display text-2xl text-canvas">{s.t}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-canvas/70">{s.d}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -353,31 +333,27 @@ function Index() {
         </h2>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {[
-            {
-              q: "Fundloom turned a six-week fiat onboarding into a single afternoon. Donors didn’t even notice it was crypto.",
-              n: "Amelia Okafor",
-              r: "Founder, Lumen Schools",
-            },
-            {
-              q: "The transparency is the product. Every backer can audit the treasury in two clicks.",
-              n: "Jonas Ribeiro",
-              r: "Lead, OpenClimate",
-            },
-            {
-              q: "It feels like Stripe and Etherscan had a very well-designed child.",
-              n: "Mira Tanaka",
-              r: "Independent publisher",
-            },
-          ].map((t, i) => (
-            <motion.figure
-              key={t.n}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-              className="rounded-3xl bg-paper p-8 hairline"
-            >
+            {[
+              {
+                q: "Fundloom turned a six-week fiat onboarding into a single afternoon. Donors didn't even notice it was crypto.",
+                n: "Amelia Okafor",
+                r: "Founder, Lumen Schools",
+              },
+              {
+                q: "The transparency is the product. Every backer can audit the treasury in two clicks.",
+                n: "Jonas Ribeiro",
+                r: "Lead, OpenClimate",
+              },
+              {
+                q: "It feels like Stripe and Etherscan had a very well-designed child.",
+                n: "Mira Tanaka",
+                r: "Independent publisher",
+              },
+            ].map((t, i) => (
+              <figure
+                key={t.n}
+                className="rounded-3xl bg-paper p-8 hairline"
+              >
               <Quote className="size-5 text-forest" />
               <blockquote className="mt-5 font-display text-xl leading-[1.35] text-ink">
                 “{t.q}”
@@ -386,10 +362,10 @@ function Index() {
                 <div className="text-ink">{t.n}</div>
                 <div className="text-ink-soft">{t.r}</div>
               </figcaption>
-            </motion.figure>
-          ))}
-        </div>
-      </section>
+              </figure>
+            ))}
+          </div>
+        </section>
 
       {/* Partners marquee */}
       <section className="border-y border-line bg-paper/60 py-14">
@@ -484,14 +460,11 @@ function FaqRow({ q, a, defaultOpen = false }: { q: string; a: string; defaultOp
           {open ? <Minus className="size-4" /> : <Plus className="size-4" />}
         </span>
       </button>
-      <motion.div
-        initial={false}
-        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="overflow-hidden"
+      <div
+        className={`overflow-hidden ${open ? 'h-auto opacity-100' : 'h-0 opacity-0'} transition-all duration-350`}
       >
         <p className="pt-4 text-base leading-relaxed text-ink-soft sm:max-w-2xl">{a}</p>
-      </motion.div>
+      </div>
     </div>
   );
 }

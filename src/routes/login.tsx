@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 
@@ -43,12 +42,7 @@ function Login() {
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center px-5 py-16 sm:px-8">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full"
-      >
+      <div className="w-full">
         <h1 className="font-display text-4xl text-ink sm:text-5xl">Welcome.</h1>
         <p className="mt-3 text-pretty text-ink-soft">
           Sign in with your email. A wallet is created for you — no setup required.
@@ -89,7 +83,7 @@ function Login() {
             </p>
           )}
         </form>
-      </motion.div>
+      </div>
     </main>
   );
 }

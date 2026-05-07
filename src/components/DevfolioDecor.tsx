@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 /**
  * Devfolio-inspired decorative SVG primitives.
  * Hand-drawn half-moons, sunburst, dots, and blobs scattered behind sections.

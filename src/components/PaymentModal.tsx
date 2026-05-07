@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { fundCampaign } from "@/functions/donations.functions";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -106,20 +105,13 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
   };
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm sm:items-center"
           onClick={handleClose}
         >
-          <motion.div
-            initial={{ y: 60, opacity: 0, scale: 0.98 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 30, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          <div
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md overflow-hidden rounded-t-3xl bg-canvas p-7 shadow-[var(--shadow-lift)] sm:rounded-3xl"
           >
@@ -227,10 +219,10 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
                 wallet={user?.wallet_address}
               />
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
 
@@ -245,10 +237,7 @@ function SuccessView({
 }) {
   return (
     <div className="py-2 text-center">
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 220, damping: 18 }}
+      <div
         className="mx-auto flex size-16 items-center justify-center rounded-full bg-forest/15 text-forest"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
@@ -260,7 +249,7 @@ function SuccessView({
             strokeLinejoin="round"
           />
         </svg>
-      </motion.div>
+      </div>
       <h3 className="mt-5 font-display text-2xl text-ink">Thank you.</h3>
       <p className="mt-1 text-sm text-ink-soft">
         {formatUSD(amount)} contributed from {shortAddr(wallet)}

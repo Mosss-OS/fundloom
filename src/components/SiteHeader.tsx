@@ -1,5 +1,4 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { shortAddr } from "@/lib/format";
@@ -30,12 +29,7 @@ export function SiteHeader() {
   }, [user]);
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="sticky top-0 z-40 border-b border-line/60 bg-canvas/70 backdrop-blur-xl"
-    >
+    <header className="sticky top-0 z-40 border-b border-line/60 bg-canvas/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
         <Link to="/" className="flex items-center gap-2">
           <LoomMark />
@@ -100,7 +94,7 @@ export function SiteHeader() {
           )}
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
 

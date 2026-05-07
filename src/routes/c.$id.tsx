@@ -1,5 +1,4 @@
 import { createFileRoute, notFound, useRouter, useSearch } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ExternalLink, MessageCircle, Megaphone, Trash2 } from "lucide-react";
 import { fetchCampaign } from "@/functions/campaigns.functions";
@@ -365,32 +364,32 @@ function CampaignDetail() {
   return (
     <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-16">
       {/* Hero */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="overflow-hidden rounded-3xl hairline"
       >
         <img src={cover} alt={c.title} className="aspect-[5/2] w-full object-cover" />
-      </motion.div>
+      </div>
 
       {paymentResult === "success" && (
-        <motion.div
+        <div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 rounded-2xl bg-forest/10 px-5 py-4 text-sm text-forest"
         >
           Payment successful! Your donation has been recorded.
-        </motion.div>
+        </div>
       )}
       {paymentResult === "cancelled" && (
-        <motion.div
+        <div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 rounded-2xl bg-paper px-5 py-4 text-sm text-ink-soft hairline"
         >
           Payment was cancelled. You can try again if you'd like to contribute.
-        </motion.div>
+        </div>
       )}
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[1.4fr_1fr]">
@@ -435,7 +434,7 @@ function CampaignDetail() {
               >
                 {label}
                 {tab === key && (
-                  <motion.div
+                  <div
                     layoutId="tab-underline"
                     className="absolute inset-x-3 -bottom-px h-px bg-ink"
                   />
@@ -520,7 +519,7 @@ function CampaignDetail() {
                 {disputes && disputes.length > 0 ? (
                   <div className="space-y-3">
                     {disputes.map((d, i) => (
-                      <motion.div
+                      <div
                         key={d.id}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -573,7 +572,7 @@ function CampaignDetail() {
                             Execute Dispute
                           </button>
                         )}
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -589,7 +588,7 @@ function CampaignDetail() {
         {/* Right: funding panel */}
         <aside>
           <div className="sticky top-24 space-y-4">
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -601,7 +600,7 @@ function CampaignDetail() {
               </div>
 
               <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-line">
-                <motion.div
+                <div
                   initial={{ width: 0 }}
                   animate={{ width: `${pct}%` }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
@@ -671,7 +670,7 @@ function CampaignDetail() {
                   {isFailed ? "Campaign ended" : isFunded ? "Fully funded" : "Contribute"}
                 </button>
               )}
-            </motion.div>
+            </div>
 
             <CreatorCard campaign={c} />
           </div>
@@ -737,7 +736,7 @@ function BackersSection({ donations }: { donations: Tables<"donations">[] }) {
         {donations.map((d, i) => {
           const tx = baseScanTxUrl(d.tx_hash);
           return (
-            <motion.div
+            <div
               key={d.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -778,7 +777,7 @@ function BackersSection({ donations }: { donations: Tables<"donations">[] }) {
                   )
                 )}
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -892,7 +891,7 @@ function UpdatesSection({
       ) : (
         <div className="space-y-3">
           {updates.map((u) => (
-            <motion.article
+            <article
               key={u.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -916,7 +915,7 @@ function UpdatesSection({
               <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-soft">
                 {u.body}
               </p>
-            </motion.article>
+            </article>
           ))}
         </div>
       )}
@@ -1013,7 +1012,7 @@ function CommentsSection({
             const name =
               cm.users?.display_name || shortAddr(cm.users?.wallet_address) || "Anonymous";
             return (
-              <motion.div
+              <div
                 key={cm.id}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1042,7 +1041,7 @@ function CommentsSection({
                     </button>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

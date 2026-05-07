@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Shield, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
 import { detectFraud } from "@/lib/groq";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -103,14 +102,8 @@ export function AiFraudDetection({
 
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
-      <AnimatePresence>
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mt-6 space-y-4"
-          >
+      {result && (
+          <div className="mt-6 space-y-4">
             {/* Risk Score */}
             <div className="rounded-xl bg-white/80 p-4">
               <div className="flex items-center justify-between">
@@ -125,11 +118,9 @@ export function AiFraudDetection({
                 </span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${result.riskScore}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className={`h-full rounded-full ${
+                <div
+                  style={{ width: `${result.riskScore}%` }}
+                  className={`h-full rounded-full transition-all duration-1000 ${
                     result.riskLevel === "low"
                       ? "bg-green-500"
                       : result.riskLevel === "medium"
@@ -174,9 +165,8 @@ export function AiFraudDetection({
               </div>
               <p className="text-sm text-ink-soft leading-relaxed">{result.recommendation}</p>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {!result && !loading && (
         <p className="mt-3 text-xs text-ink-soft">

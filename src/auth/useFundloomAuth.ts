@@ -25,15 +25,16 @@ export function useFundloomAuth() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   
-  // Only call hooks on client side when PrivyProvider is available
+  // Always call hooks (Rules of Hooks)
   const privy = usePrivy();
   const { wallets } = useWallets();
-  
+    
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef<string | null>(null);
 
-  const isAvailable = PRIVY_CONFIGURED && mounted && typeof window !== "undefined";
+  // Check if Privy is properly configured (not the dummy appId)
+  const isAvailable = PRIVY_CONFIGURED && mounted && typeof window !== "undefined" && privy?.ready !== undefined;
 
   // Demo fallback session (when Privy not configured)
   useEffect(() => {

@@ -2,23 +2,18 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { useEffect, useState, type ReactNode } from "react";
 
 /**
- * Wraps the app with Privy. Runs only on the client (TanStack Start SSR
- * is on Cloudflare Workers; Privy's SDK is browser-only). On the server
- * and during the first hydration tick we just render children unwrapped.
+ * Wraps the app with Privy. Always wraps with PrivyProvider to avoid
+ * "useWallets called outside PrivyProvider" errors. When not configured,
+ * we use a dummy appId or disable features gracefully.
  */
 export function PrivyAuthProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   const appId = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
+  const isConfigured = appId && appId !== "REPLACE_WITH_YOUR_PRIVY_APP_ID";
 
-  if (!mounted || !appId || appId === "REPLACE_WITH_YOUR_PRIVY_APP_ID") {
-    return <>{children}</>;
-  }
-
+  // Always wrap with PrivyProvider to satisfy Rules of Hooks
   return (
     <PrivyProvider
-      appId={appId}
+      appId={isConfigured ? appId : "dummy-app-id"}
       config={{
         loginMethods: ["email"],
         appearance: {

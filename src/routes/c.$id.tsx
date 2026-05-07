@@ -1,15 +1,15 @@
-import { createFileRoute, notFound, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ExternalLink, MessageCircle, Megaphone, Trash2 } from "lucide-react";
-import { fetchCampaign } from "@/functions/campaigns.functions";
-import { withdrawFunds } from "@/functions/donations.functions";
+import { fetchCampaign } from "@/api/campaigns";
+import { withdrawFunds } from "@/api/donations";
 import {
   postCampaignUpdate,
   deleteCampaignUpdate,
   postCampaignComment,
   deleteCampaignComment,
   requestRefund,
-} from "@/functions/engagement.functions";
+} from "@/api/engagement";
 import { PaymentModal } from "@/components/PaymentModal";
 import { ShareRow } from "@/components/ShareRow";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -38,64 +38,22 @@ import sample3 from "@/assets/sample-campaign-3.jpg";
 
 const fallbacks = [sample1, sample2, sample3];
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  const router = useRouter();
-  return (
-    <main className="mx-auto max-w-2xl px-5 py-24 text-center">
-      <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
-      <p className="mt-3 text-sm text-ink-soft">{error.message}</p>
-      <button
-        onClick={() => {
-          router.invalidate();
-          reset();
-        }}
-        className="mt-6 rounded-full bg-ink px-5 py-2.5 text-sm text-canvas"
-      >
-        Try again
-      </button>
-    </main>
-  );
-}
-
-export const Route = createFileRoute("/c/$id")({
-  loader: async ({ params }) => {
-    const result = await fetchCampaign({ data: { id: params.id } });
-    if (!result) throw notFound();
-    return result;
-  },
-  head: ({ loaderData }) => {
-    const c = loaderData?.campaign;
-    return {
-      meta: [
-        { title: c ? `${c.title} — Fundloom` : "Campaign — Fundloom" },
-        { name: "description", content: c?.description?.slice(0, 160) ?? "" },
-        { property: "og:title", content: c?.title ?? "Fundloom" },
-        { property: "og:description", content: c?.description?.slice(0, 160) ?? "" },
-        ...(c?.cover_image_url ? [{ property: "og:image", content: c.cover_image_url }] : []),
-      ],
-    };
-  },
-  notFoundComponent: () => (
-    <main className="mx-auto max-w-2xl px-5 py-24 text-center">
-      <h1 className="font-display text-4xl text-ink">Campaign not found</h1>
-    </main>
-  ),
-  errorComponent: ErrorComponent,
-  component: CampaignDetail,
-});
-
 type Tab = "story" | "milestones" | "updates" | "comments" | "backers" | "disputes";
 
-function CampaignDetail() {
-  const data = Route.useLoaderData() as NonNullable<Awaited<ReturnType<typeof fetchCampaign>>>;
-  const router = useRouter();
+export default function CampaignDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useFundloomAuth();
   const { getSigner } = useEthersSigner();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [open, setOpen] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const [refunding, setRefunding] = useState(false);
   const [tab, setTab] = useState<Tab>("story");
-  const [viewer, setViewer] = useState(data.viewer);
+  const [viewer, setViewer] = useState<any>(null);
   const [disputes, setDisputes] = useState<Array<{
     id: number;
     campaignId: number;
@@ -108,29 +66,48 @@ function CampaignDetail() {
     noVotes: bigint;
     executed: boolean;
     cancelled: boolean;
-  }>>(null);
+  }> | null>(null);
   const [disputeLoading, setDisputeLoading] = useState(false);
-  const search = useSearch({ from: "/c/$id" });
   const [paymentResult, setPaymentResult] = useState<"success" | "cancelled" | null>(null);
 
   useEffect(() => {
-    if (search.payment === "success") {
+    if (!id) return;
+    (async () => {
+      try {
+        setLoading(true);
+        const result = await fetchCampaign({ data: { id } });
+        if (!result) {
+          setError(new Error("Campaign not found"));
+          return;
+        }
+        setData(result);
+        setViewer(result.viewer);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Failed to load campaign"));
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment") === "success") {
       setPaymentResult("success");
-      // Clear the URL param
-      router.navigate({ to: "/c/$id", params: { id: c.id }, search: {} });
-    } else if (search.payment === "cancelled") {
+      navigate(`/c/${id}`, { replace: true });
+    } else if (params.get("payment") === "cancelled") {
       setPaymentResult("cancelled");
-      router.navigate({ to: "/c/$id", params: { id: c.id }, search: {} });
+      navigate(`/c/${id}`, { replace: true });
     }
-  }, [search, c.id, router]);
+  }, [location.search, id, navigate]);
 
   useEffect(() => {
     let cancelled = false;
     if (!user) {
-      setViewer(data.viewer);
+      setViewer(data?.viewer);
       return;
     }
-    fetchCampaign({ data: { id: data.campaign.id, viewerUserId: user.id } })
+    fetchCampaign({ data: { id: data?.campaign?.id, viewerUserId: user.id } })
       .then((r) => {
         if (!cancelled && r) setViewer(r.viewer);
       })
@@ -138,24 +115,33 @@ function CampaignDetail() {
     return () => {
       cancelled = true;
     };
-  }, [user, data.campaign.id, data.viewer]);
+  }, [user, data?.campaign?.id]);
 
   // Real-time updates with Supabase Realtime
   useEffect(() => {
+    if (!data?.campaign?.id) return;
+    
     fetchDisputes();
 
     // Set up Supabase Realtime subscriptions for campaign-related changes
     const channel = supabase
-      .channel(`campaign-${c.id}`)
+      .channel(`campaign-${data.campaign.id}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "campaign_updates",
-          filter: `campaign_id=eq.${c.id}`,
+          filter: `campaign_id=eq.${data.campaign.id}`,
         },
-        () => router.invalidate()
+        () => {
+          // Refetch campaign data on updates
+          fetchCampaign({ data: { id: data.campaign.id } })
+            .then((r) => {
+              if (r) setData(r);
+            })
+            .catch(() => {});
+        }
       )
       .on(
         "postgres_changes",
@@ -163,9 +149,15 @@ function CampaignDetail() {
           event: "*",
           schema: "public",
           table: "campaign_comments",
-          filter: `campaign_id=eq.${c.id}`,
+          filter: `campaign_id=eq.${data.campaign.id}`,
         },
-        () => router.invalidate()
+        () => {
+          fetchCampaign({ data: { id: data.campaign.id } })
+            .then((r) => {
+              if (r) setData(r);
+            })
+            .catch(() => {});
+        }
       )
       .on(
         "postgres_changes",
@@ -173,20 +165,43 @@ function CampaignDetail() {
           event: "*",
           schema: "public",
           table: "donations",
-          filter: `campaign_id=eq.${c.id}`,
+          filter: `campaign_id=eq.${data.campaign.id}`,
         },
-        () => router.invalidate()
+        () => {
+          fetchCampaign({ data: { id: data.campaign.id } })
+            .then((r) => {
+              if (r) setData(r);
+            })
+            .catch(() => {});
+        }
       )
       .subscribe();
 
-    // Keep polling for on-chain disputes (could be replaced with The Graph indexer)
+    // Keep polling for on-chain disputes
     const disputeInterval = setInterval(fetchDisputes, 15000);
 
     return () => {
       supabase.removeChannel(channel);
       clearInterval(disputeInterval);
     };
-  }, [c.id, c.on_chain_campaign_id]);
+  }, [data?.campaign?.id]);
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-2xl px-5 py-24 text-center">
+        <div className="h-8 w-40 animate-pulse rounded-full bg-paper" />
+      </main>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <main className="mx-auto max-w-2xl px-5 py-24 text-center">
+        <h1 className="font-display text-4xl text-ink">Campaign not found</h1>
+        <p className="mt-3 text-sm text-ink-soft">{error?.message}</p>
+      </main>
+    );
+  }
 
   const c = data.campaign as unknown as Tables<"campaigns">;
   const cover = c.cover_image_url || fallbacks[0];
@@ -231,7 +246,9 @@ function CampaignDetail() {
         });
       }
 
-      router.invalidate();
+      // Refetch campaign data
+      const updated = await fetchCampaign({ data: { id: c.id } });
+      if (updated) setData(updated);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Withdrawal failed");
     } finally {
@@ -340,7 +357,9 @@ function CampaignDetail() {
       const txHash = await contract.releaseMilestone(onChainCampaignId, milestoneId);
 
       alert(`Milestone ${milestoneId} released! Tx: ${txHash.slice(0, 10)}...`);
-      router.invalidate();
+      // Refetch campaign data
+      const updated = await fetchCampaign({ data: { id: c.id } });
+      if (updated) setData(updated);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to release milestone");
     }
@@ -353,7 +372,9 @@ function CampaignDetail() {
       await requestRefund({
         data: { campaignId: c.id, donorUserId: user.id },
       });
-      router.invalidate();
+      // Refetch campaign data
+      const updated = await fetchCampaign({ data: { id: c.id } });
+      if (updated) setData(updated);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Refund failed");
     } finally {
@@ -470,7 +491,10 @@ function CampaignDetail() {
                 campaignId={Number(c.on_chain_campaign_id) || 0}
                 isOwner={isOwner}
                 milestonesCount={c.milestones_count || 0}
-                onChanged={() => router.invalidate()}
+                onChanged={async () => {
+                  const updated = await fetchCampaign({ data: { id: c.id } });
+                  if (updated) setData(updated);
+                }}
               />
             )}
 
@@ -480,7 +504,10 @@ function CampaignDetail() {
                 isOwner={isOwner}
                 updates={data.updates}
                 userId={user?.id ?? null}
-                onChanged={() => router.invalidate()}
+                onChanged={async () => {
+                  const updated = await fetchCampaign({ data: { id: c.id } });
+                  if (updated) setData(updated);
+                }}
               />
             )}
 
@@ -490,7 +517,10 @@ function CampaignDetail() {
                 ownerId={c.user_id}
                 comments={data.comments}
                 userId={user?.id ?? null}
-                onChanged={() => router.invalidate()}
+                onChanged={async () => {
+                  const updated = await fetchCampaign({ data: { id: c.id } });
+                  if (updated) setData(updated);
+                }}
               />
             )}
 
@@ -682,7 +712,10 @@ function CampaignDetail() {
         onClose={() => setOpen(false)}
         campaignId={c.id}
         campaignTitle={c.title}
-        onFunded={() => router.invalidate()}
+        onFunded={async () => {
+          const updated = await fetchCampaign({ data: { id: c.id } });
+          if (updated) setData(updated);
+        }}
       />
     </main>
   );

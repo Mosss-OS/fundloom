@@ -1,6 +1,6 @@
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { syncUser } from "@/functions/users.functions";
+import { syncUser } from "@/api/users";
 import { mockEmbeddedWallet } from "@/lib/wallet";
 
 export type FundloomUser = {

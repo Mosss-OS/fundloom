@@ -1,19 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
-import { fetchCampaigns } from "@/functions/campaigns.functions";
+import { fetchCampaigns } from "@/api/campaigns";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
-
-export const Route = createFileRoute("/explore")({
-  head: () => ({
-    meta: [
-      { title: "Explore campaigns — Fundloom" },
-      { name: "description", content: "Discover crowdfunding campaigns on Fundloom." },
-    ],
-  }),
-  loader: () => fetchCampaigns({ data: { limit: 60 } }),
-  component: Explore,
-});
 
 const CATEGORIES = [
   "all",
@@ -29,13 +17,25 @@ const CATEGORIES = [
   "other",
 ] as const;
 
-function Explore() {
-  const campaigns = Route.useLoaderData() as unknown as (CampaignCardData & {
-    category?: string;
-  })[];
+export default function Explore() {
+  const [campaigns, setCampaigns] = useState<(CampaignCardData & { category?: string })[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"newest" | "most_funded" | "ending_soon">("newest");
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("all");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await fetchCampaigns({ data: { limit: 60 } });
+        setCampaigns(data as unknown as (CampaignCardData & { category?: string })[]);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

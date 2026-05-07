@@ -1,12 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { shortAddr } from "@/lib/format";
-import { isCurrentUserAdmin } from "@/functions/partners.functions";
+import { isCurrentUserAdmin } from "@/api/partners";
 
 export function SiteHeader() {
   const { user, logout } = useFundloomAuth();
-  const { location } = useRouterState();
+  const location = useLocation();
   const onLanding = location.pathname === "/";
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -39,32 +39,28 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-8 text-sm text-ink-soft md:flex">
           <Link
             to="/explore"
-            className="transition hover:text-ink"
-            activeProps={{ className: "text-ink" }}
+            className={`transition hover:text-ink ${location.pathname === "/explore" ? "text-ink" : ""}`}
           >
             Explore
           </Link>
           {user && (
             <Link
               to="/dashboard"
-              className="transition hover:text-ink"
-              activeProps={{ className: "text-ink" }}
+              className={`transition hover:text-ink ${location.pathname === "/dashboard" ? "text-ink" : ""}`}
             >
               Dashboard
             </Link>
           )}
           <Link
             to="/create"
-            className="transition hover:text-ink"
-            activeProps={{ className: "text-ink" }}
+            className={`transition hover:text-ink ${location.pathname === "/create" ? "text-ink" : ""}`}
           >
             Create
           </Link>
           {isAdmin && (
             <Link
               to="/admin/partners"
-              className="transition hover:text-ink"
-              activeProps={{ className: "text-ink" }}
+              className={`transition hover:text-ink ${location.pathname === "/admin/partners" ? "text-ink" : ""}`}
             >
               Admin
             </Link>

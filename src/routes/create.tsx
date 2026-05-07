@@ -1,18 +1,14 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Upload, X, Sparkles } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { useEthersSigner } from "@/lib/ethers";
 import { getContractInstance } from "@/integrations/contract";
-import { createCampaign, uploadCampaignCover } from "@/functions/campaigns.functions";
+import { createCampaign, uploadCampaignCover } from "@/api/campaigns";
 import { AiCampaignOptimizer } from "@/components/AiCampaignOptimizer";
 import { formatUSD } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
-
-export const Route = createFileRoute("/create")({
-  head: () => ({ meta: [{ title: "New campaign — Fundloom" }] }),
-  component: CreatePage,
-});
 
 const STEPS = ["Story", "Goal", "Cover", "Milestones", "Review"] as const;
 
@@ -29,7 +25,7 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-function CreatePage() {
+export default function CreatePage() {
   const { user, loading } = useFundloomAuth();
   const { getSigner } = useEthersSigner();
   const navigate = useNavigate();
@@ -55,7 +51,7 @@ function CreatePage() {
   const [milestoneAmount, setMilestoneAmount] = useState("");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
+    if (!loading && !user) navigate("/login");
   }, [loading, user, navigate]);
 
   const canNext = () => {
@@ -132,7 +128,7 @@ function CreatePage() {
         },
       });
 
-      navigate({ to: "/c/$id", params: { id: row.id } });
+      navigate(`/c/${row.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create campaign.");
       setSubmitting(false);

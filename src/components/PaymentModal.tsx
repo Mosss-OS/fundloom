@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fundCampaign } from "@/functions/donations.functions";
+import { fundCampaign } from "@/api/donations";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { useEthersSigner } from "@/lib/ethers";
 import { getContractInstance } from "@/integrations/contract";

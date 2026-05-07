@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { formatUSD, daysLeft, progress } from "@/lib/format";
 
 import sample1 from "@/assets/sample-campaign-1.jpg";
@@ -30,8 +30,7 @@ export function CampaignCard({
   return (
     <div>
       <Link
-        to="/c/$id"
-        params={{ id: campaign.id }}
+        to={`/c/${campaign.id}`}
         className="group block overflow-hidden rounded-3xl bg-paper hairline transition hover:shadow-[var(--shadow-lift)]"
       >
         <div className="aspect-[5/3] overflow-hidden">

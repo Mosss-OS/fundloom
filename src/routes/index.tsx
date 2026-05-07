@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import {
   Sparkles,
   Wallet,
@@ -13,29 +12,32 @@ import {
   HeartHandshake,
   Layers,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import heroImg from "@/assets/hero-loom.jpg";
 import handsImg from "@/assets/hero-hands.jpg";
 import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
 import sample3 from "@/assets/sample-campaign-3.jpg";
-import { fetchActivePartners, type Partner } from "@/functions/partners.functions";
+import { fetchActivePartners, type Partner } from "@/api/partners";
 import { SmileMoon, Sunburst, Blob, Dot, Underline, Floater } from "@/components/DevfolioDecor";
 
-export const Route = createFileRoute("/")({
-  loader: () => fetchActivePartners(),
-  staleTime: 60_000,
-  errorComponent: ({ error }) => (
-    <main className="mx-auto max-w-3xl px-5 py-32">
-      <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
-      <p className="mt-3 text-ink-soft">{error.message}</p>
-    </main>
-  ),
-  component: Index,
-});
+export default function Index() {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-function Index() {
-  const partners = Route.useLoaderData();
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await fetchActivePartners();
+        setPartners(data);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Failed to load partners"));
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
   return (
     <main className="relative">
       {/* Hero */}

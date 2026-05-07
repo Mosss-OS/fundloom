@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -151,12 +150,7 @@ function AdminPartnersPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
-      <motion.header
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-10 flex flex-wrap items-end justify-between gap-4"
-      >
+      <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="text-xs uppercase tracking-[0.18em] text-ink-soft">Admin</span>
           <h1 className="mt-2 font-display text-4xl text-ink">Partners</h1>
@@ -171,7 +165,7 @@ function AdminPartnersPage() {
           <Plus className="mr-1.5 h-4 w-4" />
           New partner
         </Button>
-      </motion.header>
+      </header>
 
       <div className="rounded-3xl bg-paper hairline overflow-hidden">
         <div className="hidden grid-cols-[60px_72px_1fr_1fr_120px_140px] items-center gap-4 px-6 py-3 text-xs uppercase tracking-wider text-ink-soft md:grid">

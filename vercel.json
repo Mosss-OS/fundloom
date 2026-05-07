@@ -2,5 +2,6 @@
   "buildCommand": "npm run build:vercel",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": null
+  "framework": "vite",
+  "outputDirectory": "dist/client"
 }

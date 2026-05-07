@@ -42,7 +42,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 vite build",
-    "build:vercel": "NODE_OPTIONS=--max-old-space-size=4096 vite build && cp -r dist/client/* . 2>/dev/null || true",
+    "build:vercel": "NODE_OPTIONS=--max-old-space-size=4096 vite build --config vite.config.vercel.ts",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

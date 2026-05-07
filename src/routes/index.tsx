@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import heroImg from "@/assets/hero-loom.jpg";
+import handsImg from "@/assets/hero-hands.jpg";
 import sample1 from "@/assets/sample-campaign-1.jpg";
 import sample2 from "@/assets/sample-campaign-2.jpg";
 import sample3 from "@/assets/sample-campaign-3.jpg";
@@ -67,10 +68,19 @@ function Index() {
           <Blob className="h-10 w-10 rotate-12" color="#9CA8FF" />
         </Floater>
 
-        <div className="mx-auto max-w-6xl px-5 pb-28 pt-20 sm:px-8 sm:pt-28">
-          <div
-            className="max-w-2xl"
-          >
+         <div className="mx-auto max-w-6xl px-5 pb-28 pt-20 sm:px-8 sm:pt-28">
+           {/* Right side image - desktop only */}
+           <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none">
+             <img
+               src={handsImg}
+               alt="Hands caring"
+               className="h-full w-full object-cover object-left opacity-90"
+             />
+           </div>
+
+           <div
+             className="relative z-10 max-w-2xl"
+           >
             <span className="inline-flex items-center gap-2 rounded-full bg-paper/70 px-3 py-1 text-xs uppercase tracking-[0.18em] text-ink-soft hairline">
               <span className="size-1.5 rounded-full bg-forest" />
               Live on Base Sepolia

@@ -33,7 +33,7 @@ contract DeployFundloomFactory is Script {
         FundloomFactory factory = new FundloomFactory(
             USDC_BASE_SEPOLIA,
             address(govToken),
-            address(this)
+            msg.sender
         ); 
         
         console2.log("GovernanceToken deployed to:", address(govToken));

@@ -1,0 +1,35 @@
+# https://www.robotstxt.org/robotstxt.html
+# For more information about robots.txt files, see:
+# https://developers.google.com/search/docs/crawling-indexing/robots/intro
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://fundloom.vercel.app/sitemap.xml
+
+# Disallow admin and API paths
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+
+# Allow specific bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+# Block bad bots
+User-agent: BadBot
+Disallow: /
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

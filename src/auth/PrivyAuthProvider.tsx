@@ -25,8 +25,6 @@ export function PrivyAuthProvider({ children }: { children: ReactNode }) {
         embeddedWallets: {
           ethereum: {
             createOnLogin: "users-without-wallets",
-            // Configure to use Base Sepolia testnet
-            chain: "base-sepolia",
           },
         },
       }}

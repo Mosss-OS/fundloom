@@ -86,7 +86,8 @@ export function useFundloomAuth() {
           localStorage.setItem("fl.pendingEmail", email);
         }
         // Trigger Privy login with email method
-        // The email will be pre-filled if stored in localStorage
+        // Note: Privy doesn't directly accept email parameter
+        // The user will see the email input modal
         privy.login?.({ loginMethods: ["email"] });
       } catch (e) {
         console.error("Privy login error:", e);

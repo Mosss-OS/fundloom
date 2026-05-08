@@ -27,8 +27,8 @@ export default function Dashboard() {
     (async () => {
       setBusy(true);
       const [c, s] = await Promise.all([
-        fetchCampaigns({ data: { userId: user.id } }),
-        getUserStats({ data: { userId: user.id } }),
+        fetchCampaigns({ userId: user.id }),
+        getUserStats({ userId: user.id }),
       ]);
       setCampaigns(c as unknown as CampaignCardData[]);
       setStats(s);

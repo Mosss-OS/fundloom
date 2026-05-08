@@ -77,7 +77,6 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
           amount: value,
           paymentMethod: "crypto",
           txHash,
-          },
         });
       } else {
         // Fiat payment via Flutterwave

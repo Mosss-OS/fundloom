@@ -13,46 +13,72 @@ export default function Login() {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Auto-fill Privy modal email and submit when modal opens
+  // Auto-fill Privy modal email and auto-submit when modal opens
   useEffect(() => {
     if (!privyAvailable) return;
 
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds total (50 * 100ms)
+
+    const tryFillEmail = () => {
+      attempts++;
+      if (attempts > maxAttempts) return;
+
+      try {
+        // Try to find Privy iframe
+        const iframe = document.querySelector('iframe[src*="privy"]') as HTMLIFrameElement;
+        let emailInput: HTMLInputElement | null = null;
+        let submitButton: HTMLElement | null = null;
+
+        if (iframe?.contentDocument) {
+          // Inside iframe
+          emailInput = iframe.contentDocument.querySelector('input[type="email"]');
+          submitButton = iframe.contentDocument.querySelector('button[type="submit"], button[role="button"]');
+        } else {
+          // Direct DOM (if Privy renders in same document)
+          emailInput = document.querySelector('input[type="email"]');
+          submitButton = document.querySelector('button[type="submit"], button[role="button"]');
+        }
+
+        if (emailInput && !emailInput.value && email) {
+          // Fill email
+          emailInput.value = email;
+          emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+          emailInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+          // Auto-submit after short delay
+          setTimeout(() => {
+            if (submitButton) {
+              (submitButton as HTMLElement).click();
+            }
+          }, 200);
+          return; // Stop trying
+        }
+
+        if (emailInput && emailInput.value) {
+          return; // Already filled
+        }
+
+        // Keep trying
+        setTimeout(tryFillEmail, 100);
+      } catch (e) {
+        console.error("Auto-fill error:", e);
+        setTimeout(tryFillEmail, 100);
+      }
+    };
+
+    // Start observing for Privy modal
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.addedNodes.length > 0) {
-          // Wait a bit for Privy modal to fully render
-          setTimeout(() => {
-            try {
-              // Find the email input in Privy's modal
-              const emailInput = document.querySelector(
-                'iframe[src*="privy"]'
-              )?.contentDocument?.querySelector('input[type="email"], input[name="email"]') ||
-                document.querySelector('input[type="email"], input[name="email"]');
-
-              if (emailInput && email) {
-                const input = emailInput as HTMLInputElement;
-                if (!input.value) {
-                  input.value = email;
-                  input.dispatchEvent(new Event('input', { bubbles: true }));
-                  input.dispatchEvent(new Event('change', { bubbles: true }));
-
-                  // Auto-click the submit button
-                  setTimeout(() => {
-                    const submitButton = document.querySelector(
-                      'button[type="submit"], button:has(svg[data-icon="arrow-right"])'
-                    ) || document.querySelector('iframe[src*="privy"]')
-                      ?.contentDocument?.querySelector('button[type="submit"]');
-
-                    if (submitButton) {
-                      (submitButton as HTMLElement).click();
-                    }
-                  }, 300);
-                }
-              }
-            } catch (e) {
-              console.error("Auto-fill error:", e);
-            }
-          }, 500);
+          // Check if Privy modal appeared
+          const hasPrivy = document.querySelector('iframe[src*="privy"]') ||
+            document.querySelector('[class*="privy"]') ||
+            document.body.textContent?.includes('Check your email');
+          
+          if (hasPrivy) {
+            setTimeout(tryFillEmail, 100);
+          }
         }
       }
     });

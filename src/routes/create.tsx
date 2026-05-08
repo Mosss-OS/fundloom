@@ -6,7 +6,10 @@ import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { useEthersSigner } from "@/lib/ethers";
 import { getContractInstance } from "@/integrations/contract";
 import { createCampaign, uploadCampaignCover } from "@/api/campaigns";
-import { AiCampaignOptimizer } from "@/components/AiCampaignOptimizer";
+import { lazy, Suspense } from "react";
+const AiCampaignOptimizer = lazy(() =>
+  import("@/components/AiCampaignOptimizer").then((m) => ({ default: m.AiCampaignOptimizer })),
+);
 import { formatUSD } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 

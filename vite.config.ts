@@ -21,6 +21,15 @@ export default defineConfig({
       input: {
         main: "index.html",
       },
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          ethers: ["ethers"],
+          supabase: ["@supabase/supabase-js"],
+          privy: ["@privy-io/react-auth"],
+        },
+      },
     },
+    chunkSizeWarningLimit: 1000,
   },
 });

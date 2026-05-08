@@ -1,17 +1,35 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 
 export default function Login() {
   const { user, loginEmail, privyAvailable } = useFundloomAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Get redirect URL from query params (e.g., /login?redirect=/create)
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
+
+  // Store redirect URL so it persists after Privy email verification redirect
   useEffect(() => {
-    if (user) navigate("/dashboard");
-  }, [user, navigate]);
+    if (redirectTo !== "/dashboard") {
+      localStorage.setItem("fl.redirectAfterLogin", redirectTo);
+    }
+  }, [redirectTo]);
+
+  useEffect(() => {
+    if (user) {
+      // Check if there's a stored redirect URL (from Privy redirect)
+      const storedRedirect = localStorage.getItem("fl.redirectAfterLogin") || redirectTo;
+      console.log("[Login] User authenticated, redirecting to:", storedRedirect);
+      localStorage.removeItem("fl.redirectAfterLogin");
+      navigate(storedRedirect);
+    }
+  }, [user, navigate, redirectTo]);
 
   // Auto-fill Privy modal email and auto-submit when modal opens
   useEffect(() => {

@@ -51,7 +51,11 @@ export default function CreatePage() {
   const [milestoneAmount, setMilestoneAmount] = useState("");
 
   useEffect(() => {
-    if (!loading && !user) navigate("/login");
+    if (!loading && !user) {
+      // Redirect to login with return URL
+      const returnTo = encodeURIComponent("/create");
+      navigate(`/login?redirect=${returnTo}`);
+    }
   }, [loading, user, navigate]);
 
   const canNext = () => {
@@ -157,9 +161,7 @@ export default function CreatePage() {
         ))}
       </div>
 
-      <div
-        key={step}
-      >
+      <div key={step}>
         {step === 0 && (
             <div className="space-y-6">
               <div>
@@ -311,6 +313,70 @@ export default function CreatePage() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
+                <h1 className="font-display text-4xl text-ink">Milestones.</h1>
+                <p className="mt-2 text-ink-soft">Break your goal into milestones (optional).</p>
+              </div>
+              
+              <div className="space-y-3">
+                {milestones.map((m, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-2xl bg-paper p-4 hairline">
+                    <div className="flex-1">
+                      <p className="text-sm text-ink">{m.description}</p>
+                      <p className="text-xs text-ink-soft">{formatUSD(Number(m.amount))}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMilestones(milestones.filter((_, j) => j !== i))}
+                      className="text-ink-soft hover:text-ink"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3 rounded-3xl bg-paper p-6 hairline">
+                <Field label="Milestone Description">
+                  <input
+                    value={milestoneDesc}
+                    onChange={(e) => setMilestoneDesc(e.target.value)}
+                    placeholder="e.g., Complete prototype"
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Amount (USD)">
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-5 flex items-center text-ink-soft">$</span>
+                    <input
+                      type="number"
+                      min="1"
+                      step="100"
+                      value={milestoneAmount}
+                      onChange={(e) => setMilestoneAmount(e.target.value)}
+                      placeholder="1,000"
+                      className={inputCls + " pl-9"}
+                    />
+                  </div>
+                </Field>
+                <button
+                  type="button"
+                  disabled={!milestoneDesc.trim() || !milestoneAmount || Number(milestoneAmount) <= 0}
+                  onClick={() => {
+                    setMilestones([...milestones, { description: milestoneDesc.trim(), amount: milestoneAmount }]);
+                    setMilestoneDesc("");
+                    setMilestoneAmount("");
+                  }}
+                  className="w-full rounded-2xl bg-ink px-4 py-3 text-sm text-canvas transition hover:bg-ink/90 disabled:opacity-50"
+                >
+                  Add Milestone
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-6">
+              <div>
                 <h1 className="font-display text-4xl text-ink">Review.</h1>
                 <p className="mt-2 text-ink-soft">One last look before launch.</p>
               </div>
@@ -320,11 +386,44 @@ export default function CreatePage() {
                 <Row k="Goal" v={formatUSD(Number(goal))} />
                 <Row k="Deadline" v={new Date(deadline).toLocaleDateString()} />
                 <Row k="Payout" v={payout === "crypto" ? "USDC (Base)" : "Fiat off-ramp"} />
+                <Row k="Milestones" v={`${milestones.length} milestone(s)`} />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-      </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="mt-8 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setStep(Math.max(0, step - 1))}
+            disabled={step === 0}
+            className="rounded-full px-6 py-3 text-sm text-ink-soft transition hover:text-ink disabled:opacity-0"
+          >
+            ← Back
+          </button>
+
+          {step < 4 ? (
+            <button
+              type="button"
+              disabled={!canNext()}
+              onClick={() => setStep(step + 1)}
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:bg-ink/90 disabled:opacity-50"
+            >
+              Next →
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={submit}
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:bg-ink/90 disabled:opacity-50"
+            >
+              {submitting ? "Creating…" : "Create Campaign"} <Sparkles className="size-4" />
+            </button>
+          )}
+        </div>
     </main>
   );
 }

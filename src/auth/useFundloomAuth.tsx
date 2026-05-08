@@ -1,5 +1,5 @@
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { syncUser } from "@/api/users";
 import { mockEmbeddedWallet } from "@/lib/wallet";
 
@@ -11,30 +11,39 @@ export type FundloomUser = {
   display_name: string | null;
 };
 
+type FundloomAuthContextType = {
+  user: FundloomUser | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  loginEmail: (email: string) => Promise<void>;
+  logout: () => Promise<void>;
+  privyAvailable: boolean;
+};
+
+const FundloomAuthContext = createContext<FundloomAuthContextType | null>(null);
+
 const PRIVY_CONFIGURED =
   typeof import.meta.env.VITE_PRIVY_APP_ID === "string" &&
   import.meta.env.VITE_PRIVY_APP_ID !== "" &&
   import.meta.env.VITE_PRIVY_APP_ID !== "REPLACE_WITH_YOUR_PRIVY_APP_ID";
 
 /**
- * Unifies Privy auth + Supabase user record.
- * If Privy is not configured, falls back to a localStorage-only demo session
- * so the UI is fully testable end-to-end.
+ * Provider component that wraps the app and provides auth context
  */
-export function useFundloomAuth() {
+export function FundloomAuthProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   
   // Always call hooks (Rules of Hooks)
   const privy = usePrivy();
   const { wallets } = useWallets();
-    
+     
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef<string | null>(null);
 
-  // Check if Privy is properly configured (not the dummy appId)
-  const isAvailable = PRIVY_CONFIGURED && mounted && typeof window !== "undefined" && privy?.ready !== undefined;
+  // Check if Privy is properly configured and ready
+  const isAvailable = PRIVY_CONFIGURED && mounted && privy.ready === true;
 
   // Demo fallback session (when Privy not configured)
   useEffect(() => {
@@ -43,9 +52,10 @@ export function useFundloomAuth() {
     const stored = localStorage.getItem("fl.demoUser");
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        setUser(parsed);
       } catch {
-        // ignore
+        localStorage.removeItem("fl.demoUser");
       }
     }
     setLoading(false);
@@ -57,58 +67,67 @@ export function useFundloomAuth() {
     if (!isAvailable) return;
     if (!privy.ready) return;
     
+    console.log("[FundloomAuth] Privy state:", { 
+      authenticated: privy.authenticated, 
+      hasUser: !!privy.user, 
+      userId: privy.user?.id,
+      ready: privy.ready,
+      walletCount: wallets.length 
+    });
+    
     if (!privy.authenticated) {
       setUser(null);
       setLoading(false);
+      synced.current = null;
       return;
     }
 
-    // Wait for privy.user to be available
+    // If no user yet, keep loading and wait
     if (!privy.user) {
-      const checkUser = setInterval(() => {
-        if (privy.user) {
-          clearInterval(checkUser);
-          syncToSupabase();
-        }
-      }, 100);
-      
-      // Stop checking after 5 seconds
-      setTimeout(() => clearInterval(checkUser), 5000);
+      console.log("[FundloomAuth] Authenticated but no user yet, waiting...");
+      setLoading(true);
       return;
     }
 
-    syncToSupabase();
-    
-    function syncToSupabase() {
-      const email = privy.user!.email?.address ?? "";
-      const privyId = privy.user!.id;
-      const wallet =
-        wallets[0]?.address ?? privy.user!.wallet?.address ?? mockEmbeddedWallet(privyId || email);
+    // We have both authenticated and user - sync to Supabase
+    const email = privy.user.email?.address ?? "";
+    const privyId = privy.user.id;
+    const wallet =
+      wallets[0]?.address ?? privy.user.wallet?.address ?? mockEmbeddedWallet(privyId || email);
 
-      if (synced.current === privyId) return;
-      synced.current = privyId;
-
-      syncUser({ data: { privyId, email, walletAddress: wallet } })
-        .then((u) => {
-          setUser(u);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+    // Avoid re-syncing the same user
+    if (synced.current === privyId) {
+      console.log("[FundloomAuth] Already synced user:", privyId);
+      setLoading(false);
+      return;
     }
+    synced.current = privyId;
+
+    console.log("[FundloomAuth] Syncing user to Supabase:", { privyId, email, wallet });
+    setLoading(true);
+    syncUser({ data: { privyId, email, walletAddress: wallet } })
+      .then((u) => {
+        console.log("[FundloomAuth] User synced successfully:", u);
+        setUser(u);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("[FundloomAuth] Failed to sync user:", err);
+        setUser(null);
+        setLoading(false);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAvailable, privy.ready, privy.authenticated, privy.user, wallets]);
 
   const loginEmail = async (email: string) => {
     if (isAvailable) {
       try {
-        // Store email so we can potentially use it
         if (typeof window !== "undefined") {
           localStorage.setItem("fl.pendingEmail", email);
         }
-        // Trigger Privy login
         privy.login?.({ loginMethods: ["email"] });
       } catch (e) {
-        console.error("Privy login error:", e);
+        console.error("[FundloomAuth] Login error:", e);
       }
       return;
     }
@@ -131,7 +150,7 @@ export function useFundloomAuth() {
     synced.current = null;
   };
 
-  return useMemo(
+  const value = useMemo(
     () => ({
       user,
       loading,
@@ -143,4 +162,21 @@ export function useFundloomAuth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, loading, isAvailable],
   );
+
+  return (
+    <FundloomAuthContext.Provider value={value}>
+      {children}
+    </FundloomAuthContext.Provider>
+  );
+}
+
+/**
+ * Hook to use the Fundloom auth context
+ */
+export function useFundloomAuth() {
+  const context = useContext(FundloomAuthContext);
+  if (!context) {
+    throw new Error("useFundloomAuth must be used within a FundloomAuthProvider");
+  }
+  return context;
 }

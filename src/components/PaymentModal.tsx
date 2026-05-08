@@ -71,13 +71,12 @@ export function PaymentModal({ open, onClose, campaignId, campaignTitle, onFunde
 
         // Record the on-chain contribution in Supabase
         await fundCampaign({
-          data: {
-            campaignId,
-            donorWallet: user.wallet_address ?? "0x0",
-            donorUserId: user.id,
-            amount: value,
-            paymentMethod: "crypto",
-            txHash,
+          campaignId,
+          donorWallet: user.wallet_address ?? "0x0",
+          donorUserId: user.id,
+          amount: value,
+          paymentMethod: "crypto",
+          txHash,
           },
         });
       } else {

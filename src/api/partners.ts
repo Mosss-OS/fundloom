@@ -19,9 +19,51 @@ export async function fetchActivePartners(): Promise<Partner[]> {
   
   if (error) {
     console.error("fetchActivePartners error:", error);
-    return [];
+    return getDefaultPartners();
   }
-  return (data ?? []) as Partner[];
+  
+  // Return fetched partners or fallback to defaults if empty
+  return (data && data.length > 0) ? data as Partner[] : getDefaultPartners();
+}
+
+function getDefaultPartners(): Partner[] {
+  return [
+    {
+      id: "1",
+      name: "Base",
+      url: "https://base.org",
+      logo_url: null,
+      display_order: 0,
+    },
+    {
+      id: "2", 
+      name: "Privy",
+      url: "https://privy.io",
+      logo_url: null,
+      display_order: 1,
+    },
+    {
+      id: "3",
+      name: "Supabase",
+      url: "https://supabase.com",
+      logo_url: null,
+      display_order: 2,
+    },
+    {
+      id: "4",
+      name: "Vercel",
+      url: "https://vercel.com",
+      logo_url: null,
+      display_order: 3,
+    },
+    {
+      id: "5",
+      name: "OpenZeppelin",
+      url: "https://openzeppelin.com",
+      logo_url: null,
+      display_order: 4,
+    },
+  ];
 }
 
 // Admin functions - these would need to be moved to serverless API routes for production

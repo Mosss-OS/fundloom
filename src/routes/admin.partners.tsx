@@ -1,5 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute } from '@tanstack/react-router'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
@@ -12,7 +14,7 @@ import {
   uploadPartnerLogo,
   isCurrentUserAdmin,
   type AdminPartner,
-} from "@/functions/partners.functions";
+} from "@/api/partners";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

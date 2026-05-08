@@ -538,17 +538,20 @@ function PartnersMarquee({ partners }: { partners: Partner[] }) {
           className="flex shrink-0 animate-[marquee_38s_linear_infinite] items-center gap-16 pr-16"
         >
           {items.map((p, i) => {
-            const content = p.logo_url ? (
-              <img
-                src={p.logo_url}
-                alt={p.name}
-                className="h-8 w-auto object-contain opacity-70 transition hover:opacity-100 sm:h-10"
-                loading="lazy"
-              />
-            ) : (
-              <span className="font-display text-3xl tracking-tight text-ink-soft transition hover:text-ink sm:text-4xl">
-                {p.name}
-              </span>
+            const content = (
+              <div className="flex items-center gap-3 opacity-70 transition hover:opacity-100">
+                {p.logo_url && (
+                  <img
+                    src={p.logo_url}
+                    alt={p.name}
+                    className="h-8 w-auto object-contain sm:h-10"
+                    loading="lazy"
+                  />
+                )}
+                <span className="font-display text-lg tracking-tight text-ink-soft sm:text-xl">
+                  {p.name}
+                </span>
+              </div>
             );
             return p.url ? (
               <a

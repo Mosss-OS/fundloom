@@ -37,10 +37,11 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
   // Always call hooks (Rules of Hooks)
   const privy = usePrivy();
   const { wallets } = useWallets();
-     
+      
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef<string | null>(null);
+  const syncing = useRef(false); // Prevent concurrent syncs
 
   // Check if Privy is properly configured and ready
   const isAvailable = PRIVY_CONFIGURED && mounted && privy.ready === true;
@@ -76,48 +77,81 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
     });
     
     if (!privy.authenticated) {
-      setUser(null);
+      // Not authenticated - clear user state
+      if (user !== null) {
+        setUser(null);
+      }
       setLoading(false);
       synced.current = null;
+      syncing.current = false;
       return;
     }
 
-    // If no user yet, keep loading and wait
+    // Authenticated but no user object yet - wait
     if (!privy.user) {
-      console.log("[FundloomAuth] Authenticated but no user yet, waiting...");
-      setLoading(true);
+      console.log("[FundloomAuth] Authenticated but waiting for user object...");
+      if (!loading) setLoading(true);
       return;
     }
 
-    // We have both authenticated and user - sync to Supabase
-    const email = privy.user.email?.address ?? "";
+    // Already synced this user - skip
+    if (synced.current === privy.user.id && user !== null) {
+      console.log("[FundloomAuth] User already synced:", privy.user.id);
+      if (loading) setLoading(false);
+      return;
+    }
+
+    // Prevent concurrent sync attempts
+    if (syncing.current) {
+      console.log("[FundloomAuth] Sync already in progress, skipping...");
+      return;
+    }
+
+    // Sync user to Supabase
+    syncing.current = true;
     const privyId = privy.user.id;
+    const email = privy.user.email?.address ?? "";
     const wallet =
       wallets[0]?.address ?? privy.user.wallet?.address ?? mockEmbeddedWallet(privyId || email);
 
-    // Avoid re-syncing the same user
-    if (synced.current === privyId) {
-      console.log("[FundloomAuth] Already synced user:", privyId);
-      setLoading(false);
-      return;
-    }
-    synced.current = privyId;
-
-    console.log("[FundloomAuth] Syncing user to Supabase:", { privyId, email, wallet });
-    setLoading(true);
-    syncUser({ privyId, email, walletAddress: wallet })
-      .then((u) => {
+     console.log("[FundloomAuth] Syncing user to Supabase:", { privyId, email, wallet });
+     setLoading(true);
+     syncUser({ privyId, email, walletAddress: wallet })
+       .then((u) => {
         console.log("[FundloomAuth] User synced successfully:", u);
+        synced.current = privyId;
         setUser(u);
         setLoading(false);
       })
       .catch((err) => {
         console.error("[FundloomAuth] Failed to sync user:", err);
-        setUser(null);
+        // Don't clear user on sync failure - they're still authenticated with Privy
         setLoading(false);
+      })
+      .finally(() => {
+        syncing.current = false;
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAvailable, privy.ready, privy.authenticated, privy.user, wallets]);
+  }, [isAvailable, privy.ready, privy.authenticated, privy.user?.id, wallets]);
+
+  // Also listen for privy.ready changes to handle initial load
+  useEffect(() => {
+    if (!isAvailable) return;
+    if (!privy.ready) return;
+    
+    // On initial load, if authenticated but no user state yet, this helps trigger a re-check
+    if (privy.authenticated && privy.user && !user && !syncing.current) {
+      console.log("[FundloomAuth] Triggering re-sync on mount/ready...");
+      // The other effect should handle this, but let's force a re-render by updating a dependency
+      const currentSynced = synced.current;
+      synced.current = null; // Force re-sync
+      // Restore if needed after a tick
+      setTimeout(() => {
+        if (currentSynced) synced.current = currentSynced;
+      }, 1000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [privy.ready]);
 
   const loginEmail = async (email: string) => {
     if (isAvailable) {

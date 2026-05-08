@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
+import { usePrivy } from "@privy-io/react-auth";
 
 export default function Login() {
   const { user, loginEmail, privyAvailable } = useFundloomAuth();
+  const { authenticated: privyAuthenticated } = usePrivy();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -21,15 +23,16 @@ export default function Login() {
     }
   }, [redirectTo]);
 
+  // Redirect when user state changes OR when Privy becomes authenticated
   useEffect(() => {
-    if (user) {
+    if (user || privyAuthenticated) {
       // Check if there's a stored redirect URL (from Privy redirect)
       const storedRedirect = localStorage.getItem("fl.redirectAfterLogin") || redirectTo;
-      console.log("[Login] User authenticated, redirecting to:", storedRedirect);
+      console.log("[Login] User authenticated (user or privy), redirecting to:", storedRedirect);
       localStorage.removeItem("fl.redirectAfterLogin");
       navigate(storedRedirect);
     }
-  }, [user, navigate, redirectTo]);
+  }, [user, privyAuthenticated, navigate, redirectTo]);
 
   // Auto-fill Privy modal email and auto-submit when modal opens
   useEffect(() => {

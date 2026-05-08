@@ -24,11 +24,11 @@ const PRIVY_CONFIGURED =
 export function useFundloomAuth() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-
+  
   // Always call hooks (Rules of Hooks)
   const privy = usePrivy();
   const { wallets } = useWallets();
-
+    
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
   const synced = useRef<string | null>(null);
@@ -56,28 +56,30 @@ export function useFundloomAuth() {
   useEffect(() => {
     if (!isAvailable) return;
     if (!privy.ready) return;
+    
     if (!privy.authenticated) {
       setUser(null);
       setLoading(false);
       return;
     }
-    
+
     // Wait for privy.user to be available
     if (!privy.user) {
       const checkUser = setInterval(() => {
         if (privy.user) {
           clearInterval(checkUser);
-          syncUserToSupabase();
+          syncToSupabase();
         }
       }, 100);
+      
       // Stop checking after 5 seconds
       setTimeout(() => clearInterval(checkUser), 5000);
       return;
     }
+
+    syncToSupabase();
     
-    syncUserToSupabase();
-    
-    function syncUserToSupabase() {
+    function syncToSupabase() {
       const email = privy.user!.email?.address ?? "";
       const privyId = privy.user!.id;
       const wallet =
@@ -99,11 +101,11 @@ export function useFundloomAuth() {
   const loginEmail = async (email: string) => {
     if (isAvailable) {
       try {
-        // Store email so Privy can potentially use it
+        // Store email so we can potentially use it
         if (typeof window !== "undefined") {
           localStorage.setItem("fl.pendingEmail", email);
         }
-        // Trigger Privy login - user will see modal
+        // Trigger Privy login
         privy.login?.({ loginMethods: ["email"] });
       } catch (e) {
         console.error("Privy login error:", e);

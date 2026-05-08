@@ -56,25 +56,43 @@ export function useFundloomAuth() {
   useEffect(() => {
     if (!isAvailable) return;
     if (!privy.ready) return;
-    if (!privy.authenticated || !privy.user) {
+    if (!privy.authenticated) {
       setUser(null);
       setLoading(false);
       return;
     }
-    const email = privy.user.email?.address ?? "";
-    const privyId = privy.user.id;
-    const wallet =
-      wallets[0]?.address ?? privy.user.wallet?.address ?? mockEmbeddedWallet(privyId || email);
+    
+    // Wait for privy.user to be available
+    if (!privy.user) {
+      const checkUser = setInterval(() => {
+        if (privy.user) {
+          clearInterval(checkUser);
+          syncUserToSupabase();
+        }
+      }, 100);
+      // Stop checking after 5 seconds
+      setTimeout(() => clearInterval(checkUser), 5000);
+      return;
+    }
+    
+    syncUserToSupabase();
+    
+    function syncUserToSupabase() {
+      const email = privy.user!.email?.address ?? "";
+      const privyId = privy.user!.id;
+      const wallet =
+        wallets[0]?.address ?? privy.user!.wallet?.address ?? mockEmbeddedWallet(privyId || email);
 
-    if (synced.current === privyId) return;
-    synced.current = privyId;
+      if (synced.current === privyId) return;
+      synced.current = privyId;
 
-    syncUser({ data: { privyId, email, walletAddress: wallet } })
-      .then((u) => {
-        setUser(u);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      syncUser({ data: { privyId, email, walletAddress: wallet } })
+        .then((u) => {
+          setUser(u);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAvailable, privy.ready, privy.authenticated, privy.user, wallets]);
 

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { formatUSD, daysLeft, progress } from "@/lib/format";
 
@@ -17,7 +18,7 @@ export type CampaignCardData = {
   cover_image_url: string | null;
 };
 
-export function CampaignCard({
+function CampaignCardImpl({
   campaign,
   index = 0,
 }: {
@@ -38,6 +39,7 @@ export function CampaignCard({
             src={cover}
             alt={campaign.title}
             loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
           />
         </div>
@@ -69,3 +71,5 @@ export function CampaignCard({
     </div>
   );
 }
+
+export const CampaignCard = memo(CampaignCardImpl);

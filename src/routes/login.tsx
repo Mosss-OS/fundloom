@@ -23,8 +23,9 @@ export default function Login() {
     setSubmitting(true);
     try {
       await loginEmail(email.trim());
-      // If Privy is available, it will show the modal automatically
-      // The email is passed to Privy via the login method
+      // Privy will either:
+      // 1. Send a one-time code to the email (auto-submit flow)
+      // 2. Or show the login modal where user types email again
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

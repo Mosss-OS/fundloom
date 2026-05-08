@@ -16,7 +16,7 @@ export function SiteHeader() {
       setIsAdmin(false);
       return;
     }
-    isCurrentUserAdmin({ data: { actorUserId: user.id } })
+    isCurrentUserAdmin({ actorUserId: user.id })
       .then((r) => {
         if (!cancelled) setIsAdmin(!!r.isAdmin);
       })

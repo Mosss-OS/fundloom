@@ -47,7 +47,7 @@ export const Route = createFileRoute("/admin/partners")({
   component: AdminPartnersPage,
 });
 
-function AdminPartnersPage() {
+export default function AdminPartnersPage() {
   const { user, loading } = useFundloomAuth();
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);

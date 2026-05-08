@@ -13,6 +13,55 @@ export default function Login() {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
+  // Auto-fill Privy modal email and submit when modal opens
+  useEffect(() => {
+    if (!privyAvailable) return;
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.addedNodes.length > 0) {
+          // Wait a bit for Privy modal to fully render
+          setTimeout(() => {
+            try {
+              // Find the email input in Privy's modal
+              const emailInput = document.querySelector(
+                'iframe[src*="privy"]'
+              )?.contentDocument?.querySelector('input[type="email"], input[name="email"]') ||
+                document.querySelector('input[type="email"], input[name="email"]');
+
+              if (emailInput && email) {
+                const input = emailInput as HTMLInputElement;
+                if (!input.value) {
+                  input.value = email;
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
+                  input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                  // Auto-click the submit button
+                  setTimeout(() => {
+                    const submitButton = document.querySelector(
+                      'button[type="submit"], button:has(svg[data-icon="arrow-right"])'
+                    ) || document.querySelector('iframe[src*="privy"]')
+                      ?.contentDocument?.querySelector('button[type="submit"]');
+
+                    if (submitButton) {
+                      (submitButton as HTMLElement).click();
+                    }
+                  }, 300);
+                }
+              }
+            } catch (e) {
+              console.error("Auto-fill error:", e);
+            }
+          }, 500);
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [privyAvailable, email]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -23,9 +72,8 @@ export default function Login() {
     setSubmitting(true);
     try {
       await loginEmail(email.trim());
-      // Privy will either:
-      // 1. Send a one-time code to the email (auto-submit flow)
-      // 2. Or show the login modal where user types email again
+      // Email is stored in localStorage by useFundloomAuth
+      // The MutationObserver above will auto-fill and submit the Privy modal
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

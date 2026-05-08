@@ -105,7 +105,7 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
 
     console.log("[FundloomAuth] Syncing user to Supabase:", { privyId, email, wallet });
     setLoading(true);
-    syncUser({ data: { privyId, email, walletAddress: wallet } })
+    syncUser({ privyId, email, walletAddress: wallet })
       .then((u) => {
         console.log("[FundloomAuth] User synced successfully:", u);
         setUser(u);
@@ -134,7 +134,7 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
     // Demo fallback
     const privyId = `demo:${email}`;
     const wallet = mockEmbeddedWallet(privyId);
-    const u = await syncUser({ data: { privyId, email, walletAddress: wallet } });
+    const u = await syncUser({ privyId, email, walletAddress: wallet });
     setUser(u);
     if (typeof window !== "undefined") {
       localStorage.setItem("fl.demoUser", JSON.stringify(u));

@@ -36,7 +36,7 @@ function getDefaultPartners(): Partner[] {
       display_order: 0,
     },
     {
-      id: "2",
+      id: "2", 
       name: "Privy",
       url: "https://privy.io",
       logo_url: "https://privy.io/images/privy-logo.svg",
@@ -53,14 +53,14 @@ function getDefaultPartners(): Partner[] {
       id: "4",
       name: "Vercel",
       url: "https://vercel.com",
-      logo_url: "https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png",
+      logo_url: "https://vercel.com/brand/vercel.svg",
       display_order: 3,
     },
     {
       id: "5",
-      name: "OpenZeppelin",
-      url: "https://openzeppelin.com",
-      logo_url: "https://openzeppelin.com/img/oz-logo.png",
+      name: "OpenZeppeln",
+      url: "https://openzeppeln.com",
+      logo_url: "https://openzeppeln.com/img/oz-logo.png",
       display_order: 4,
     },
   ];

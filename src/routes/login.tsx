@@ -23,6 +23,8 @@ export default function Login() {
     setSubmitting(true);
     try {
       await loginEmail(email.trim());
+      // If Privy is available, it will show the modal automatically
+      // The email is passed to Privy via the login method
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

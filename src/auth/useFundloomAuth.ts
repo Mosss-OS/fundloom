@@ -80,7 +80,17 @@ export function useFundloomAuth() {
 
   const loginEmail = async (email: string) => {
     if (isAvailable) {
-      privy.login?.();
+      // Set the email to be used by Privy
+      try {
+        // Privy needs the email to be passed to the login method
+        // We'll store it and let Privy pick it up
+        if (typeof window !== "undefined") {
+          localStorage.setItem("fl.pendingEmail", email);
+        }
+        privy.login?.(email);
+      } catch (e) {
+        console.error("Privy login error:", e);
+      }
       return;
     }
     // Demo fallback

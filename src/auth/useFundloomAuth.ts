@@ -81,17 +81,15 @@ export function useFundloomAuth() {
   const loginEmail = async (email: string) => {
     if (isAvailable) {
       try {
-        // Send one-time code directly to the user's email
-        // This avoids having to type the email again in Privy's modal
-        await privy.sendOneTimeCode?.(email);
-        // Store email for code verification step
+        // Store email so Privy can pre-fill it in the modal
         if (typeof window !== "undefined") {
           localStorage.setItem("fl.pendingEmail", email);
         }
+        // Trigger Privy login with email method
+        // The email will be pre-filled if stored in localStorage
+        privy.login?.({ loginMethods: ["email"] });
       } catch (e) {
-        console.error("Privy sendOneTimeCode error:", e);
-        // Fallback to standard login if sendOneTimeCode fails
-        privy.login?.();
+        console.error("Privy login error:", e);
       }
       return;
     }

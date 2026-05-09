@@ -64,3 +64,15 @@ export async function getUserStats(data: { userId: string }) {
     campaignCount: campaigns?.length ?? 0,
   };
 }
+
+export async function getRecentDonations(data: { userId: string; limit?: number }) {
+  const { data: donations, error } = await supabase
+    .from("donations")
+    .select("id,amount,created_at,tx_hash,payment_method,campaign_id,campaigns(id,title)")
+    .eq("donor_user_id", data.userId)
+    .order("created_at", { ascending: false })
+    .limit(data.limit ?? 10);
+
+  if (error) throw new Error(error.message);
+  return donations ?? [];
+}

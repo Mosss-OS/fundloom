@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 import { fetchCampaigns } from "@/api/campaigns";
-import { getUserStats } from "@/api/users";
+import { getUserStats, getRecentDonations } from "@/api/users";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
-import { formatUSD, shortAddr } from "@/lib/format";
+import { formatUSD, shortAddr, formatTimeAgo } from "@/lib/format";
 
 export default function Dashboard() {
   const { user, loading } = useFundloomAuth();
@@ -16,6 +16,15 @@ export default function Dashboard() {
     activeCount: number;
     campaignCount: number;
   } | null>(null);
+  const [donations, setDonations] = useState<Array<{
+    id: string;
+    amount: number | string;
+    created_at: string;
+    tx_hash: string | null;
+    payment_method: string;
+    campaign_id: string;
+    campaigns: { id: string; title: string } | null;
+  }>>([]);
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
@@ -26,12 +35,14 @@ export default function Dashboard() {
     if (!user) return;
     (async () => {
       setBusy(true);
-      const [c, s] = await Promise.all([
+      const [c, s, d] = await Promise.all([
         fetchCampaigns({ userId: user.id }),
         getUserStats({ userId: user.id }),
+        getRecentDonations({ userId: user.id, limit: 8 }),
       ]);
       setCampaigns(c as unknown as CampaignCardData[]);
       setStats(s);
+      setDonations(d as typeof donations);
       setBusy(false);
     })();
   }, [user]);
@@ -111,6 +122,66 @@ export default function Dashboard() {
             {campaigns.map((c, i) => (
               <CampaignCard key={c.id} campaign={c} index={i} />
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* Recent donations */}
+      <section className="mt-16">
+        <div className="mb-6 flex items-baseline justify-between">
+          <h2 className="font-display text-2xl text-ink">Recent donations</h2>
+          <span className="text-xs text-ink-soft">{donations.length} recent</span>
+        </div>
+
+        {busy ? (
+          <div className="h-40 animate-pulse rounded-3xl bg-paper" />
+        ) : donations.length === 0 ? (
+          <div className="rounded-3xl bg-paper p-10 text-center hairline">
+            <p className="text-sm text-ink-soft">You haven't made any donations yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-3xl bg-paper hairline">
+            <ul className="divide-y divide-ink/10">
+              {donations.map((d) => {
+                const status = d.tx_hash ? "Confirmed" : "Pending";
+                return (
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
+                  >
+                    <div className="min-w-0 flex-1">
+                      {d.campaigns ? (
+                        <Link
+                          to={`/c/${d.campaigns.id}`}
+                          className="truncate font-medium text-ink hover:underline"
+                        >
+                          {d.campaigns.title}
+                        </Link>
+                      ) : (
+                        <span className="text-ink-soft">Unknown campaign</span>
+                      )}
+                      <div className="mt-1 text-xs text-ink-soft">
+                        {formatTimeAgo(d.created_at)} · {d.payment_method}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-display text-lg text-ink">
+                        {formatUSD(Number(d.amount))}
+                      </div>
+                      <span
+                        className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                          status === "Confirmed"
+                            ? "bg-ink text-canvas"
+                            : "bg-ink/10 text-ink-soft"
+                        }`}
+                      >
+                        {status}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         )}
       </section>

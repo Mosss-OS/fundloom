@@ -40,6 +40,12 @@ const fallbacks = [sample1, sample2, sample3];
 
 type Tab = "story" | "milestones" | "updates" | "comments" | "backers" | "disputes";
 
+type CampaignWithChain = Tables<"campaigns"> & {
+  users?: { wallet_address?: string | null };
+  on_chain_campaign_id?: number | null;
+  milestones_count?: number | null;
+};
+
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -75,7 +81,7 @@ export default function CampaignDetail() {
     (async () => {
       try {
         setLoading(true);
-        const result = await fetchCampaign({ data: { id } });
+        const result = await fetchCampaign({ id });
         if (!result) {
           setError(new Error("Campaign not found"));
           return;
@@ -107,7 +113,7 @@ export default function CampaignDetail() {
       setViewer(data?.viewer);
       return;
     }
-    fetchCampaign({ data: { id: data?.campaign?.id, viewerUserId: user.id } })
+    data?.campaign?.id ? fetchCampaign({ id: data.campaign.id, viewerUserId: user.id }) : Promise.resolve(null)
       .then((r) => {
         if (!cancelled && r) setViewer(r.viewer);
       })
@@ -136,7 +142,7 @@ export default function CampaignDetail() {
         },
         () => {
           // Refetch campaign data on updates
-          fetchCampaign({ data: { id: data.campaign.id } })
+          fetchCampaign({ id: data.campaign.id })
             .then((r) => {
               if (r) setData(r);
             })
@@ -152,7 +158,7 @@ export default function CampaignDetail() {
           filter: `campaign_id=eq.${data.campaign.id}`,
         },
         () => {
-          fetchCampaign({ data: { id: data.campaign.id } })
+          fetchCampaign({ id: data.campaign.id })
             .then((r) => {
               if (r) setData(r);
             })
@@ -168,7 +174,7 @@ export default function CampaignDetail() {
           filter: `campaign_id=eq.${data.campaign.id}`,
         },
         () => {
-          fetchCampaign({ data: { id: data.campaign.id } })
+          fetchCampaign({ id: data.campaign.id })
             .then((r) => {
               if (r) setData(r);
             })
@@ -203,8 +209,10 @@ export default function CampaignDetail() {
     );
   }
 
-  const c = data.campaign as unknown as Tables<"campaigns">;
+  const c = data.campaign as unknown as CampaignWithChain;
   const cover = c.cover_image_url || fallbacks[0];
+  const milestonesCount = milestonesCount ?? 0;
+  const onChainCampaignId = onChainCampaignId ?? null;
   const pct = progress(c.amount_raised, c.goal_amount);
   const isOwner = user?.id === c.user_id;
   const isFailed = c.status === "failed";
@@ -217,7 +225,7 @@ export default function CampaignDetail() {
     setWithdrawing(true);
     try {
       // Get the on-chain campaign ID from the campaign data
-      const onChainCampaignId = c.on_chain_campaign_id;
+      const onChainCampaignId = onChainCampaignId ?? null;
 
       if (onChainCampaignId !== undefined && onChainCampaignId !== null) {
         // Use smart contract withdrawal (legacy - for campaigns without milestones)
@@ -229,25 +237,21 @@ export default function CampaignDetail() {
 
         // Record the withdrawal in Supabase
         await withdrawFunds({
-          data: {
-            userId: user.id,
-            campaignId: c.id,
-            amount: Number(c.amount_raised),
-          },
+          userId: user.id,
+          campaignId: c.id,
+          amount: Number(c.amount_raised),
         });
       } else {
         // Fallback to server function if no on-chain campaign
         await withdrawFunds({
-          data: {
-            userId: user.id,
-            campaignId: c.id,
-            amount: Number(c.amount_raised),
-          },
+          userId: user.id,
+          campaignId: c.id,
+          amount: Number(c.amount_raised),
         });
       }
 
       // Refetch campaign data
-      const updated = await fetchCampaign({ data: { id: c.id } });
+      const updated = await fetchCampaign({ id: c.id });
       if (updated) setData(updated);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Withdrawal failed");
@@ -263,7 +267,7 @@ export default function CampaignDetail() {
     if (!user) return;
     setDisputeLoading(true);
     try {
-      const onChainCampaignId = c.on_chain_campaign_id;
+      const onChainCampaignId = onChainCampaignId ?? null;
       if (onChainCampaignId === undefined || onChainCampaignId === null) {
         throw new Error("No on-chain campaign found");
       }
@@ -320,14 +324,14 @@ export default function CampaignDetail() {
 
   // Fetch disputes for this campaign
   const fetchDisputes = async () => {
-    if (!c.on_chain_campaign_id) return;
+    if (!onChainCampaignId) return;
     
     try {
       const signer = await getSigner();
       if (!signer) return;
       
       const contract = getContractInstance(signer);
-      const disputeIds = await contract.getDisputesForCampaign(c.on_chain_campaign_id);
+      const disputeIds = await contract.getDisputesForCampaign(onChainCampaignId);
       
       // Fetch details for each dispute
       const disputeDetails = await Promise.all(
@@ -336,7 +340,7 @@ export default function CampaignDetail() {
         })
       );
       
-      setDisputes(disputeDetails);
+      setDisputes(disputeDetails.map((d, index) => ({ ...d, id: Number(disputeIds[index]) })));
     } catch (e) {
       console.error("Failed to fetch disputes:", e);
     }
@@ -345,7 +349,7 @@ export default function CampaignDetail() {
   const handleReleaseMilestone = async (milestoneId: number) => {
     if (!user) return;
     try {
-      const onChainCampaignId = c.on_chain_campaign_id;
+      const onChainCampaignId = onChainCampaignId ?? null;
       if (onChainCampaignId === undefined || onChainCampaignId === null) {
         throw new Error("No on-chain campaign found");
       }
@@ -358,7 +362,7 @@ export default function CampaignDetail() {
 
       alert(`Milestone ${milestoneId} released! Tx: ${txHash.slice(0, 10)}...`);
       // Refetch campaign data
-      const updated = await fetchCampaign({ data: { id: c.id } });
+      const updated = await fetchCampaign({ id: c.id });
       if (updated) setData(updated);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to release milestone");
@@ -369,11 +373,9 @@ export default function CampaignDetail() {
     if (!user) return;
     setRefunding(true);
     try {
-      await requestRefund({
-        data: { campaignId: c.id, donorUserId: user.id },
-      });
+      await requestRefund({ campaignId: c.id, donorUserId: user.id });
       // Refetch campaign data
-      const updated = await fetchCampaign({ data: { id: c.id } });
+      const updated = await fetchCampaign({ id: c.id });
       if (updated) setData(updated);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Refund failed");
@@ -386,9 +388,6 @@ export default function CampaignDetail() {
     <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-16">
       {/* Hero */}
       <div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="overflow-hidden rounded-3xl hairline"
       >
         <img src={cover} alt={c.title} className="aspect-[5/2] w-full object-cover" />
@@ -396,8 +395,6 @@ export default function CampaignDetail() {
 
       {paymentResult === "success" && (
         <div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
           className="mt-6 rounded-2xl bg-forest/10 px-5 py-4 text-sm text-forest"
         >
           Payment successful! Your donation has been recorded.
@@ -405,8 +402,6 @@ export default function CampaignDetail() {
       )}
       {paymentResult === "cancelled" && (
         <div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
           className="mt-6 rounded-2xl bg-paper px-5 py-4 text-sm text-ink-soft hairline"
         >
           Payment was cancelled. You can try again if you'd like to contribute.
@@ -440,7 +435,7 @@ export default function CampaignDetail() {
             {(
               [
                 ["story", "Story"],
-                ["milestones", `Milestones${c.milestones_count ? ` · ${c.milestones_count}` : ""}`],
+                ["milestones", `Milestones${milestonesCount ? ` · ${milestonesCount}` : ""}`],
                 ["updates", `Updates${data.updates.length ? ` · ${data.updates.length}` : ""}`],
                 ["comments", `Comments${data.comments.length ? ` · ${data.comments.length}` : ""}`],
                 ["backers", `Backers · ${data.donations.length}`],
@@ -456,7 +451,6 @@ export default function CampaignDetail() {
                 {label}
                 {tab === key && (
                   <div
-                    layoutId="tab-underline"
                     className="absolute inset-x-3 -bottom-px h-px bg-ink"
                   />
                 )}
@@ -488,11 +482,11 @@ export default function CampaignDetail() {
 
             {tab === "milestones" && (
               <MilestoneManager
-                campaignId={Number(c.on_chain_campaign_id) || 0}
+                campaignId={Number(onChainCampaignId) || 0}
                 isOwner={isOwner}
-                milestonesCount={c.milestones_count || 0}
+                milestonesCount={milestonesCount || 0}
                 onChanged={async () => {
-                  const updated = await fetchCampaign({ data: { id: c.id } });
+                  const updated = await fetchCampaign({ id: c.id });
                   if (updated) setData(updated);
                 }}
               />
@@ -505,7 +499,7 @@ export default function CampaignDetail() {
                 updates={data.updates}
                 userId={user?.id ?? null}
                 onChanged={async () => {
-                  const updated = await fetchCampaign({ data: { id: c.id } });
+                  const updated = await fetchCampaign({ id: c.id });
                   if (updated) setData(updated);
                 }}
               />
@@ -518,7 +512,7 @@ export default function CampaignDetail() {
                 comments={data.comments}
                 userId={user?.id ?? null}
                 onChanged={async () => {
-                  const updated = await fetchCampaign({ data: { id: c.id } });
+                  const updated = await fetchCampaign({ id: c.id });
                   if (updated) setData(updated);
                 }}
               />
@@ -551,9 +545,6 @@ export default function CampaignDetail() {
                     {disputes.map((d, i) => (
                       <div
                         key={d.id}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, delay: i * 0.03 }}
                         className="rounded-2xl bg-paper p-5 hairline"
                       >
                         <div className="flex items-start justify-between">
@@ -562,7 +553,7 @@ export default function CampaignDetail() {
                               Dispute #{d.id} - {d.disputeType === DisputeType.WITHDRAWAL ? "Withdrawal" : "Milestone Release"}
                             </div>
                             <div className="mt-1 text-xs text-ink-soft">
-                              Created by {shortAddr(d.proposer)} · {formatTimeAgo(d.startTime * 1000)}
+                              Created by {shortAddr(d.proposer)} · {formatTimeAgo(new Date(d.startTime * 1000).toISOString())}
                             </div>
                           </div>
                           {!d.executed && !d.cancelled && (
@@ -619,9 +610,6 @@ export default function CampaignDetail() {
         <aside>
           <div className="sticky top-24 space-y-4">
             <div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
               className="rounded-3xl bg-paper p-7 hairline"
             >
               <div className="font-display text-4xl text-ink">{formatUSD(c.amount_raised)}</div>
@@ -631,9 +619,7 @@ export default function CampaignDetail() {
 
               <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-line">
                 <div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${pct}%` }}
-                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ width: `${pct}%` }}
                   className={`h-full rounded-full ${isFailed ? "bg-destructive" : "bg-forest"}`}
                 />
               </div>
@@ -656,7 +642,7 @@ export default function CampaignDetail() {
               {isOwner ? (
                 <>
                   {/* Legacy withdrawal - only show if no milestones */}
-                  {(!c.milestones_count || c.milestones_count === 0) && (
+                  {(!milestonesCount || milestonesCount === 0) && (
                     <button
                       onClick={handleWithdraw}
                       disabled={withdrawing || Number(c.amount_raised) <= 0 || isFailed}
@@ -671,7 +657,7 @@ export default function CampaignDetail() {
                   )}
 
                   {/* Info message when milestones exist */}
-                  {((c.milestones_count as number) ?? 0) > 0 && (
+                  {((milestonesCount as number) ?? 0) > 0 && (
                     <div className="mt-6 rounded-2xl bg-blue-50 p-4 text-sm text-blue-700">
                       <p className="font-medium">Milestone-based withdrawals active</p>
                       <p className="mt-1 text-xs">
@@ -713,7 +699,7 @@ export default function CampaignDetail() {
         campaignId={c.id}
         campaignTitle={c.title}
         onFunded={async () => {
-          const updated = await fetchCampaign({ data: { id: c.id } });
+          const updated = await fetchCampaign({ id: c.id });
           if (updated) setData(updated);
         }}
       />
@@ -771,9 +757,6 @@ function BackersSection({ donations }: { donations: Tables<"donations">[] }) {
           return (
             <div
               key={d.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: i * 0.03 }}
               className="flex items-center justify-between gap-4 rounded-2xl bg-paper px-5 py-4 hairline"
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -842,9 +825,7 @@ function UpdatesSection({
     setBusy(true);
     setError(null);
     try {
-      await postCampaignUpdate({
-        data: { campaignId, authorId: userId, title, body },
-      });
+      await postCampaignUpdate({ campaignId, authorId: userId, title, body });
       setTitle("");
       setBody("");
       setShowForm(false);
@@ -860,7 +841,7 @@ function UpdatesSection({
     if (!userId) return;
     if (!confirm("Delete this update?")) return;
     try {
-      await deleteCampaignUpdate({ data: { updateId: id, actorUserId: userId } });
+      await deleteCampaignUpdate({ updateId: id, actorUserId: userId });
       onChanged();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed.");
@@ -926,8 +907,6 @@ function UpdatesSection({
           {updates.map((u) => (
             <article
               key={u.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl bg-paper p-5 hairline"
             >
               <div className="flex items-start justify-between gap-3">
@@ -980,9 +959,7 @@ function CommentsSection({
     setBusy(true);
     setError(null);
     try {
-      await postCampaignComment({
-        data: { campaignId, authorId: userId, body },
-      });
+      await postCampaignComment({ campaignId, authorId: userId, body });
       setBody("");
       onChanged();
     } catch (e) {
@@ -996,9 +973,7 @@ function CommentsSection({
     if (!userId) return;
     if (!confirm("Delete this comment?")) return;
     try {
-      await deleteCampaignComment({
-        data: { commentId: id, actorUserId: userId },
-      });
+      await deleteCampaignComment({ commentId: id, actorUserId: userId });
       onChanged();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed.");
@@ -1047,8 +1022,6 @@ function CommentsSection({
             return (
               <div
                 key={cm.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
                 className="rounded-2xl bg-paper p-4 hairline"
               >
                 <div className="flex items-start justify-between gap-3">

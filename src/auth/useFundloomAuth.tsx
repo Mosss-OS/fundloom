@@ -37,6 +37,7 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
   // Always call hooks (Rules of Hooks)
   const privy = usePrivy();
   const { wallets } = useWallets();
+  const walletAddress = wallets[0]?.address ?? privy.user?.wallet?.address ?? null;
       
   const [user, setUser] = useState<FundloomUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,12 +112,12 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
     syncing.current = true;
     const privyId = privy.user.id;
     const email = privy.user.email?.address ?? "";
-    const wallet =
-      wallets[0]?.address ?? privy.user.wallet?.address ?? mockEmbeddedWallet(privyId || email);
+    const wallet = walletAddress ?? mockEmbeddedWallet(privyId || email);
 
      console.log("[FundloomAuth] Syncing user to Supabase:", { privyId, email, wallet });
      setLoading(true);
-     syncUser({ privyId, email, walletAddress: wallet })
+     privy.getAccessToken()
+       .then((token) => syncUser({ privyId, email, walletAddress: wallet }, token))
        .then((u) => {
         console.log("[FundloomAuth] User synced successfully:", u);
         synced.current = privyId;
@@ -132,7 +133,7 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
         syncing.current = false;
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAvailable, privy.ready, privy.authenticated, privy.user?.id, wallets]);
+  }, [isAvailable, privy.ready, privy.authenticated, privy.user?.id, walletAddress]);
 
   // Also listen for privy.ready changes to handle initial load
   useEffect(() => {
@@ -159,7 +160,7 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
         if (typeof window !== "undefined") {
           localStorage.setItem("fl.pendingEmail", email);
         }
-        privy.login?.({ loginMethods: ["email"] });
+        privy.login?.({ loginMethods: ["email"], prefill: { type: "email", value: email } });
       } catch (e) {
         console.error("[FundloomAuth] Login error:", e);
       }

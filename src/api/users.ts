@@ -8,8 +8,19 @@ const SyncSchema = z.object({
   displayName: z.string().min(1).max(80).nullable().optional(),
 });
 
-export async function syncUser(data: z.infer<typeof SyncSchema>) {
+export async function syncUser(data: z.infer<typeof SyncSchema>, accessToken?: string | null) {
   const validated = SyncSchema.parse(data);
+
+  const { data: synced, error: syncErr } = await supabase.functions.invoke("sync-user", {
+    body: validated,
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+  });
+
+  if (!syncErr && synced) return synced;
+
+  if (accessToken) {
+    throw new Error(syncErr?.message || "Unable to sync authenticated user.");
+  }
   
   const { data: existing, error: selErr } = await supabase
     .from("users")

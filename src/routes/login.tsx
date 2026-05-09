@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
-import { usePrivy } from "@privy-io/react-auth";
 
 export default function Login() {
-  const { user, loginEmail, privyAvailable } = useFundloomAuth();
-  const { authenticated: privyAuthenticated } = usePrivy();
+  const { user, loading, loginEmail, privyAvailable } = useFundloomAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -23,91 +21,16 @@ export default function Login() {
     }
   }, [redirectTo]);
 
-  // Redirect when user state changes OR when Privy becomes authenticated
+  // Redirect only after the app user has been synced and is ready.
   useEffect(() => {
-    if (user || privyAuthenticated) {
+    if (!loading && user) {
       // Check if there's a stored redirect URL (from Privy redirect)
       const storedRedirect = localStorage.getItem("fl.redirectAfterLogin") || redirectTo;
-      console.log("[Login] User authenticated (user or privy), redirecting to:", storedRedirect);
+      console.log("[Login] User ready, redirecting to:", storedRedirect);
       localStorage.removeItem("fl.redirectAfterLogin");
-      navigate(storedRedirect);
+      navigate(storedRedirect, { replace: true });
     }
-  }, [user, privyAuthenticated, navigate, redirectTo]);
-
-  // Auto-fill Privy modal email and auto-submit when modal opens
-  useEffect(() => {
-    if (!privyAvailable) return;
-
-    let attempts = 0;
-    const maxAttempts = 50; // 5 seconds total (50 * 100ms)
-
-    const tryFillEmail = () => {
-      attempts++;
-      if (attempts > maxAttempts) return;
-
-      try {
-        // Try to find Privy iframe
-        const iframe = document.querySelector('iframe[src*="privy"]') as HTMLIFrameElement;
-        let emailInput: HTMLInputElement | null = null;
-        let submitButton: HTMLElement | null = null;
-
-        if (iframe?.contentDocument) {
-          // Inside iframe
-          emailInput = iframe.contentDocument.querySelector('input[type="email"]');
-          submitButton = iframe.contentDocument.querySelector('button[type="submit"], button[role="button"]');
-        } else {
-          // Direct DOM (if Privy renders in same document)
-          emailInput = document.querySelector('input[type="email"]');
-          submitButton = document.querySelector('button[type="submit"], button[role="button"]');
-        }
-
-        if (emailInput && !emailInput.value && email) {
-          // Fill email
-          emailInput.value = email;
-          emailInput.dispatchEvent(new Event('input', { bubbles: true }));
-          emailInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-          // Auto-submit after short delay
-          setTimeout(() => {
-            if (submitButton) {
-              (submitButton as HTMLElement).click();
-            }
-          }, 200);
-          return; // Stop trying
-        }
-
-        if (emailInput && emailInput.value) {
-          return; // Already filled
-        }
-
-        // Keep trying
-        setTimeout(tryFillEmail, 100);
-      } catch (e) {
-        console.error("Auto-fill error:", e);
-        setTimeout(tryFillEmail, 100);
-      }
-    };
-
-    // Start observing for Privy modal
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0) {
-          // Check if Privy modal appeared
-          const hasPrivy = document.querySelector('iframe[src*="privy"]') ||
-            document.querySelector('[class*="privy"]') ||
-            document.body.textContent?.includes('Check your email');
-          
-          if (hasPrivy) {
-            setTimeout(tryFillEmail, 100);
-          }
-        }
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => observer.disconnect();
-  }, [privyAvailable, email]);
+  }, [loading, user, navigate, redirectTo]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

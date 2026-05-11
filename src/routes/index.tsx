@@ -83,13 +83,13 @@ export default function Index() {
                <div className="absolute inset-0">
                  {/* Grid of decorative shapes */}
                  <div className="absolute left-8 top-16">
-                   <SmileMoon className="h-14 w-24 rotate-12" color="#F4C26B" opacity="0.5" />
+                   <SmileMoon className="h-14 w-24 rotate-12" color="#F4C26B" />
                  </div>
                  <div className="absolute right-20 top-24">
-                   <Sunburst className="h-16 w-16" color="#CDEBD6" opacity="0.6" />
+                   <Sunburst className="h-16 w-16" color="#CDEBD6" />
                  </div>
                  <div className="absolute left-12 top-1/2 -translate-y-1/2">
-                   <Blob className="h-24 w-24 rotate-45" color="#9CA8FF" opacity="0.4" />
+                   <Blob className="h-24 w-24 rotate-45" color="#9CA8FF" />
                  </div>
                  <div className="absolute right-16 top-1/3">
                    <HeartHandshake className="h-20 w-20 text-forest/50" />
@@ -98,17 +98,17 @@ export default function Index() {
                    <div className="h-28 w-28 rounded-full bg-forest/15 backdrop-blur-md" />
                  </div>
                  <div className="absolute bottom-20 right-24">
-                   <Dot className="h-6 w-6" color="#5b8cff" opacity="0.6" />
+                   <Dot className="h-6 w-6" color="#5b8cff" />
                  </div>
                  {/* Floating smaller dots */}
                  <div className="absolute left-24 top-1/4 animate-[floaterBob_4s_ease-in-out_infinite]">
-                   <Dot className="h-3 w-3" color="#F0E6C8" opacity="0.7" />
+                   <Dot className="h-3 w-3" color="#F0E6C8" />
                  </div>
                  <div className="absolute right-32 top-1/2 animate-[floaterBob_5s_ease-in-out_infinite_1s]">
-                   <Dot className="h-4 w-4" color="#F4C26B" opacity="0.5" />
+                   <Dot className="h-4 w-4" color="#F4C26B" />
                  </div>
                  <div className="absolute left-16 bottom-40 animate-[floaterBob_6s_ease-in-out_infinite_2s]">
-                   <Dot className="h-2 w-2" color="#CDEBD6" opacity="0.8" />
+                   <Dot className="h-2 w-2" color="#CDEBD6" />
                  </div>
                  {/* Gradient overlay to blend with text */}
                  <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/40 to-transparent" />

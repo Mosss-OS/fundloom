@@ -27,7 +27,7 @@ export default function Explore() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await fetchCampaigns({ data: { limit: 60 } });
+        const data = await fetchCampaigns({ limit: 60 });
         setCampaigns(data as unknown as (CampaignCardData & { category?: string })[]);
       } catch (error) {
         console.error("Failed to fetch campaigns:", error);

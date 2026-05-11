@@ -83,12 +83,10 @@ export default function CreatePage() {
     try {
       const base64 = await fileToBase64(file);
       const res = await uploadCampaignCover({
-        data: {
-          userId: user.id,
-          fileName: file.name,
-          contentType: file.type,
-          fileBase64: base64,
-        },
+        userId: user.id,
+        fileName: file.name,
+        contentType: file.type,
+        fileBase64: base64,
       });
       setCover(res.url);
     } catch (err) {
@@ -123,16 +121,14 @@ export default function CreatePage() {
 
       // Create Supabase record with on-chain ID
       const row = await createCampaign({
-        data: {
-          userId: user.id,
-          title: title.trim(),
-          description: description.trim(),
-          goalAmount: Number(goal),
-          deadline: new Date(deadline).toISOString(),
-          coverImageUrl: cover.trim() || null,
-          payoutPreference: payout,
-          category: category as Tables<"campaigns">["category"],
-        },
+        userId: user.id,
+        title: title.trim(),
+        description: description.trim(),
+        goalAmount: Number(goal),
+        deadline: new Date(deadline).toISOString(),
+        coverImageUrl: cover.trim() || null,
+        payoutPreference: payout,
+        category: category as Tables<"campaigns">["category"],
       });
 
       navigate(`/c/${row.id}`);

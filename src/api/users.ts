@@ -17,10 +17,6 @@ export async function syncUser(data: z.infer<typeof SyncSchema>, accessToken?: s
   });
 
   if (!syncErr && synced) return synced;
-
-  if (accessToken) {
-    throw new Error(syncErr?.message || "Unable to sync authenticated user.");
-  }
   
   const { data: existing, error: selErr } = await supabase
     .from("users")

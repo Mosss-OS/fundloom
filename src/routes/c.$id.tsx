@@ -113,11 +113,12 @@ export default function CampaignDetail() {
       setViewer(data?.viewer);
       return;
     }
-    data?.campaign?.id ? fetchCampaign({ id: data.campaign.id, viewerUserId: user.id }) : Promise.resolve(null)
-      .then((r) => {
-        if (!cancelled && r) setViewer(r.viewer);
-      })
-      .catch(() => {});
+    const p = data?.campaign?.id
+      ? fetchCampaign({ id: data.campaign.id, viewerUserId: user.id })
+      : Promise.resolve(null);
+    p.then((r) => {
+      if (!cancelled && r) setViewer((r as any).viewer);
+    }).catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -210,10 +211,10 @@ export default function CampaignDetail() {
   }
 
   const c = data.campaign as unknown as CampaignWithChain;
-  const cover = c.cover_image_url || fallbacks[0];
-  const milestonesCount = milestonesCount ?? 0;
-  const onChainCampaignId = onChainCampaignId ?? null;
-  const pct = progress(c.amount_raised, c.goal_amount);
+  const cover = c?.cover_image_url || fallbacks[0];
+  const milestonesCount = c?.milestones_count ?? 0;
+  const onChainCampaignId = c?.on_chain_campaign_id ?? null;
+  const pct = progress(c?.amount_raised ?? 0, c?.goal_amount ?? 1);
   const isOwner = user?.id === c.user_id;
   const isFailed = c.status === "failed";
   const isFunded = Number(c.amount_raised) >= Number(c.goal_amount);
@@ -224,9 +225,6 @@ export default function CampaignDetail() {
     if (!user) return;
     setWithdrawing(true);
     try {
-      // Get the on-chain campaign ID from the campaign data
-      const onChainCampaignId = onChainCampaignId ?? null;
-
       if (onChainCampaignId !== undefined && onChainCampaignId !== null) {
         // Use smart contract withdrawal (legacy - for campaigns without milestones)
         const signer = await getSigner();
@@ -267,7 +265,6 @@ export default function CampaignDetail() {
     if (!user) return;
     setDisputeLoading(true);
     try {
-      const onChainCampaignId = onChainCampaignId ?? null;
       if (onChainCampaignId === undefined || onChainCampaignId === null) {
         throw new Error("No on-chain campaign found");
       }
@@ -349,7 +346,6 @@ export default function CampaignDetail() {
   const handleReleaseMilestone = async (milestoneId: number) => {
     if (!user) return;
     try {
-      const onChainCampaignId = onChainCampaignId ?? null;
       if (onChainCampaignId === undefined || onChainCampaignId === null) {
         throw new Error("No on-chain campaign found");
       }

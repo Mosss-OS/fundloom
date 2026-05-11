@@ -113,11 +113,12 @@ export default function CampaignDetail() {
       setViewer(data?.viewer);
       return;
     }
-    data?.campaign?.id ? fetchCampaign({ id: data.campaign.id, viewerUserId: user.id }) : Promise.resolve(null)
-      .then((r) => {
-        if (!cancelled && r) setViewer(r.viewer);
-      })
-      .catch(() => {});
+    const p = data?.campaign?.id
+      ? fetchCampaign({ id: data.campaign.id, viewerUserId: user.id })
+      : Promise.resolve(null);
+    p.then((r) => {
+      if (!cancelled && r) setViewer((r as any).viewer);
+    }).catch(() => {});
     return () => {
       cancelled = true;
     };

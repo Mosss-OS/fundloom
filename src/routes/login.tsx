@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useFundloomAuth } from "@/auth/useFundloomAuth";
 
 export default function Login() {
-  const { user, loading, loginEmail, privyAvailable } = useFundloomAuth();
+  const { user, loading, privyAuthenticated, loginEmail, privyAvailable } = useFundloomAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -76,9 +76,13 @@ export default function Login() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
+          {privyAuthenticated && !user && (
+            <p className="text-sm text-ink-soft">Finishing your sign-in…</p>
+          )}
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (privyAuthenticated && !user)}
             className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-4 text-sm font-medium text-canvas transition hover:bg-ink/90 disabled:opacity-60"
           >
             {submitting ? "Signing in…" : "Continue"}

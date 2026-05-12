@@ -406,6 +406,29 @@ export type Database = {
       }
       is_admin_user: { Args: { _user_id: string }; Returns: boolean }
       mark_expired_campaigns: { Args: never; Returns: number }
+      sync_privy_user: {
+        Args: {
+          _display_name?: string
+          _email: string
+          _privy_id: string
+          _wallet_address?: string
+        }
+        Returns: {
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          privy_id: string
+          updated_at: string
+          wallet_address: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "users"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

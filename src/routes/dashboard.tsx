@@ -8,7 +8,7 @@ import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 import { formatUSD, shortAddr, formatTimeAgo } from "@/lib/format";
 
 export default function Dashboard() {
-  const { user, loading } = useFundloomAuth();
+  const { user, loading, privyAuthenticated } = useFundloomAuth();
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<CampaignCardData[]>([]);
   const [stats, setStats] = useState<{
@@ -28,8 +28,8 @@ export default function Dashboard() {
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/login");
-  }, [loading, user, navigate]);
+    if (!loading && !user && !privyAuthenticated) navigate("/login");
+  }, [loading, user, privyAuthenticated, navigate]);
 
   useEffect(() => {
     if (!user) return;

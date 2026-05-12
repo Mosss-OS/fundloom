@@ -29,7 +29,7 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 export default function CreatePage() {
-  const { user, loading } = useFundloomAuth();
+  const { user, loading, privyAuthenticated } = useFundloomAuth();
   const { getSigner } = useEthersSigner();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,12 +54,12 @@ export default function CreatePage() {
   const [milestoneAmount, setMilestoneAmount] = useState("");
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !privyAuthenticated) {
       // Redirect to login with return URL
       const returnTo = encodeURIComponent("/create");
       navigate(`/login?redirect=${returnTo}`);
     }
-  }, [loading, user, navigate]);
+  }, [loading, user, privyAuthenticated, navigate]);
 
   const canNext = () => {
     if (step === 0)

@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_privy_user(text, text, text, text) FROM PUBLIC, anon, authenticated;

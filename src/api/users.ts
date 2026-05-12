@@ -17,6 +17,7 @@ export async function syncUser(data: z.infer<typeof SyncSchema>, accessToken?: s
   });
 
   if (!syncErr && synced) return synced;
+  console.warn("sync-user function failed, checking for an existing user record", syncErr);
   
   const { data: existing, error: selErr } = await supabase
     .from("users")
@@ -26,34 +27,9 @@ export async function syncUser(data: z.infer<typeof SyncSchema>, accessToken?: s
   
   if (selErr) throw new Error(selErr.message);
 
-  if (existing) {
-    const { data: updated, error } = await supabase
-      .from("users")
-      .update({
-        email: validated.email,
-        wallet_address: validated.walletAddress ?? existing.wallet_address,
-        display_name: validated.displayName ?? existing.display_name,
-      })
-      .eq("id", existing.id)
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return updated;
-  }
+  if (existing) return existing;
 
-  const { data: inserted, error } = await supabase
-    .from("users")
-    .insert({
-      privy_id: validated.privyId,
-      email: validated.email,
-      wallet_address: validated.walletAddress ?? null,
-      display_name: validated.displayName ?? null,
-    })
-    .select()
-    .single();
-  
-  if (error) throw new Error(error.message);
-  return inserted;
+  throw new Error(syncErr?.message || "Could not finish sign-in. Please refresh and try again.");
 }
 
 export async function getUserStats(data: { userId: string }) {

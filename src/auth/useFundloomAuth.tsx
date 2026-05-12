@@ -15,6 +15,7 @@ type FundloomAuthContextType = {
   user: FundloomUser | null;
   loading: boolean;
   isAuthenticated: boolean;
+  privyAuthenticated: boolean;
   loginEmail: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   privyAvailable: boolean;
@@ -46,6 +47,8 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
 
   // Check if Privy is properly configured and ready
   const isAvailable = PRIVY_CONFIGURED && mounted && privy.ready === true;
+  const pendingEmail = () =>
+    typeof window !== "undefined" ? localStorage.getItem("fl.pendingEmail") ?? "" : "";
 
   // Demo fallback session (when Privy not configured)
   useEffect(() => {
@@ -111,7 +114,7 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
     // Sync user to Supabase
     syncing.current = true;
     const privyId = privy.user.id;
-    const email = privy.user.email?.address ?? "";
+    const email = privy.user.email?.address ?? pendingEmail();
     const wallet = walletAddress ?? mockEmbeddedWallet(privyId || email);
 
      console.log("[FundloomAuth] Syncing user to Supabase:", { privyId, email, wallet });
@@ -126,7 +129,6 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
       })
       .catch((err) => {
         console.error("[FundloomAuth] Failed to sync user:", err);
-        // Don't clear user on sync failure - they're still authenticated with Privy
         setLoading(false);
       })
       .finally(() => {
@@ -135,34 +137,32 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAvailable, privy.ready, privy.authenticated, privy.user?.id, walletAddress]);
 
-  // Also listen for privy.ready changes to handle initial load
-  useEffect(() => {
-    if (!isAvailable) return;
-    if (!privy.ready) return;
-    
-    // On initial load, if authenticated but no user state yet, this helps trigger a re-check
-    if (privy.authenticated && privy.user && !user && !syncing.current) {
-      console.log("[FundloomAuth] Triggering re-sync on mount/ready...");
-      // The other effect should handle this, but let's force a re-render by updating a dependency
-      const currentSynced = synced.current;
-      synced.current = null; // Force re-sync
-      // Restore if needed after a tick
-      setTimeout(() => {
-        if (currentSynced) synced.current = currentSynced;
-      }, 1000);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [privy.ready]);
-
   const loginEmail = async (email: string) => {
     if (isAvailable) {
       try {
         if (typeof window !== "undefined") {
           localStorage.setItem("fl.pendingEmail", email);
         }
+        if (privy.authenticated && privy.user) {
+          if (syncing.current) return;
+          syncing.current = true;
+          setLoading(true);
+          const privyId = privy.user.id;
+          const wallet = walletAddress ?? mockEmbeddedWallet(privyId || email);
+          const token = await privy.getAccessToken();
+          const u = await syncUser({ privyId, email: privy.user.email?.address ?? email, walletAddress: wallet }, token);
+          synced.current = privyId;
+          setUser(u);
+          setLoading(false);
+          syncing.current = false;
+          return;
+        }
         privy.login?.({ loginMethods: ["email"], prefill: { type: "email", value: email } });
       } catch (e) {
+        syncing.current = false;
+        setLoading(false);
         console.error("[FundloomAuth] Login error:", e);
+        throw e;
       }
       return;
     }
@@ -190,12 +190,13 @@ export function FundloomAuthProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       isAuthenticated: !!user,
+      privyAuthenticated: isAvailable && privy.authenticated,
       loginEmail,
       logout,
       privyAvailable: isAvailable,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, loading, isAvailable],
+    [user, loading, isAvailable, privy.authenticated],
   );
 
   return (

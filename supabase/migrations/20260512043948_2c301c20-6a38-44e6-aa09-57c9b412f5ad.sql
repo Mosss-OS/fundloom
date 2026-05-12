@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.sync_privy_user(text, text, text, text) TO service_role;

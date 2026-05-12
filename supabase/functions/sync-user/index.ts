@@ -40,22 +40,6 @@ function decodeJson<T>(value: string): T {
   return JSON.parse(new TextDecoder().decode(base64UrlToBytes(value))) as T;
 }
 
-function joseToDer(signature: Uint8Array) {
-  if (signature.length !== 64) throw new Error("Invalid ES256 signature length");
-
-  const encodeInteger = (bytes: Uint8Array) => {
-    let start = 0;
-    while (start < bytes.length - 1 && bytes[start] === 0) start += 1;
-    let value = bytes.slice(start);
-    if (value[0] & 0x80) value = Uint8Array.from([0, ...value]);
-    return Uint8Array.from([0x02, value.length, ...value]);
-  };
-
-  const r = encodeInteger(signature.slice(0, 32));
-  const s = encodeInteger(signature.slice(32));
-  return Uint8Array.from([0x30, r.length + s.length, ...r, ...s]);
-}
-
 async function verifyPrivyToken(token: string) {
   const parts = token.split(".");
   if (parts.length !== 3) throw new Error("Malformed auth token");
@@ -88,7 +72,7 @@ async function verifyPrivyToken(token: string) {
   const verified = await crypto.subtle.verify(
     { name: "ECDSA", hash: "SHA-256" },
     key,
-    joseToDer(base64UrlToBytes(encodedSignature)),
+    base64UrlToBytes(encodedSignature),
     new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`),
   );
 

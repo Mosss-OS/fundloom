@@ -163,7 +163,11 @@ export type Database = {
       donations: {
         Row: {
           amount: number
+          block_number: number | null
           campaign_id: string
+          chain_id: number | null
+          confirmed: boolean
+          confirmed_at: string | null
           created_at: string
           donor_user_id: string | null
           donor_wallet: string
@@ -173,7 +177,11 @@ export type Database = {
         }
         Insert: {
           amount: number
+          block_number?: number | null
           campaign_id: string
+          chain_id?: number | null
+          confirmed?: boolean
+          confirmed_at?: string | null
           created_at?: string
           donor_user_id?: string | null
           donor_wallet: string
@@ -183,7 +191,11 @@ export type Database = {
         }
         Update: {
           amount?: number
+          block_number?: number | null
           campaign_id?: string
+          chain_id?: number | null
+          confirmed?: boolean
+          confirmed_at?: string | null
           created_at?: string
           donor_user_id?: string | null
           donor_wallet?: string
@@ -393,6 +405,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_crypto_donation: {
+        Args: {
+          _amount: number
+          _block_number: number
+          _campaign_id: string
+          _chain_id: number
+          _donor_wallet: string
+          _tx_hash: string
+        }
+        Returns: {
+          amount: number
+          block_number: number | null
+          campaign_id: string
+          chain_id: number | null
+          confirmed: boolean
+          confirmed_at: string | null
+          created_at: string
+          donor_user_id: string | null
+          donor_wallet: string
+          id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          tx_hash: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "donations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
